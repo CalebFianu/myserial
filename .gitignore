@@ -1,0 +1,101 @@
+# === Claude / AI ===
+.claude/
+.claude_*
+claude_output/
+CLAUDE.md
+*.claude-conversation
+
+# === Java / Spring Boot / Maven ===
+backend/**/target/
+backend/**/*.class
+backend/**/*.jar
+backend/**/*.war
+backend/**/*.ear
+backend/**/*.log
+backend/**/hs_err_pid*
+
+# === Maven ===
+.mvn/wrapper/maven-wrapper.jar
+!.mvn/wrapper/maven-wrapper.properties
+
+# === Spring Boot ===
+backend/**/.factorypath
+backend/**/application-local.properties
+backend/**/application-local.yml
+
+# === Flutter / Dart ===
+frontend/.dart_tool/
+frontend/.packages
+frontend/.pub-cache/
+frontend/.pub/
+frontend/build/
+frontend/.flutter-plugins
+frontend/.flutter-plugins-dependencies
+frontend/.metadata
+
+# === Dart generated ===
+frontend/**/*.g.dart
+frontend/**/*.freezed.dart
+frontend/**/*.mocks.dart
+
+# === Android ===
+frontend/android/.gradle/
+frontend/android/app/debug/
+frontend/android/app/profile/
+frontend/android/app/release/
+frontend/android/**/local.properties
+frontend/android/**/GeneratedPluginRegistrant.java
+frontend/android/key.properties
+frontend/android/**/*.keystore
+frontend/android/**/*.jks
+
+# === iOS ===
+frontend/ios/Pods/
+frontend/ios/.symlinks/
+frontend/ios/Flutter/Flutter.framework
+frontend/ios/Flutter/Flutter.podspec
+frontend/ios/Flutter/Generated.xcconfig
+frontend/ios/Flutter/app.flx
+frontend/ios/Flutter/flutter_export_environment.sh
+frontend/ios/ServiceDefinitions.json
+frontend/ios/Runner/GeneratedPluginRegistrant.*
+
+# === IDE ===
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+
+# === OS ===
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# === Environment / Secrets ===
+.env
+.env.local
+.env.*.local
+*.env
+!.env.example
+
+# === Docker ===
+docker-compose.override.yml
+
+# === Logs ===
+*.log
+logs/
+
+# === Coverage / Test ===
+coverage/
+frontend/coverage/
+backend/**/surefire-reports/
+backend/**/failsafe-reports/
