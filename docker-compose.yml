@@ -1,0 +1,34 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: myserial-postgres
+    environment:
+      POSTGRES_DB: myserial
+      POSTGRES_USER: myserial
+      POSTGRES_PASSWORD: myserial
+    ports:
+      - "5432:5432"
+    volumes:
+      - myserial_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U myserial -d myserial"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: myserial-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - myserial_redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  myserial_pgdata:
+  myserial_redis:

@@ -1,0 +1,27 @@
+spring:
+  datasource:
+    url: jdbc:tc:postgresql:15:///myserial_test
+    driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+tmdb:
+  api-key: test-key
+  base-url: https://api.themoviedb.org/3
+  image-base-url: https://image.tmdb.org/t/p
+
+jwt:
+  secret: test-secret-key-at-least-32-chars-long-for-hmac256
+  access-token-expiry: 900
+  refresh-token-expiry: 2592000
+
+logging:
+  level:
+    com.myserial: DEBUG
