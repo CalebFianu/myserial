@@ -1,0 +1,23 @@
+:root{
+/* Families — Google Fonts stand-ins (no font binaries in source; see readme) */
+--font-display:"Archivo",system-ui,sans-serif; /* headlines, show titles, numerals */
+--font-body:"Figtree",system-ui,sans-serif;    /* UI copy */
+--font-code:"JetBrains Mono",ui-monospace,monospace; /* episode codes: S02E04 */
+/* Scale (mobile-first) */
+--type-hero:28px;    /* screen titles, show hero */
+--type-title:22px;   /* section headers */
+--type-heading:17px; /* card titles, row titles */
+--type-body:15px;    /* default copy */
+--type-caption:13px; /* metadata, timestamps */
+--type-micro:11px;   /* overlines, badges */
+/* Weights */
+--w-bold:700; /* @kind other */
+--w-semi:600; /* @kind other */
+--w-med:500; /* @kind other */
+--w-reg:400; /* @kind other */
+/* Details */
+--track-overline:.08em; /* @kind other */  /* uppercase overlines */
+--track-display:-.02em; /* @kind other */  /* tighten big display */
+--lh-tight:1.15; /* @kind other */
+--lh-body:1.5; /* @kind other */
+}

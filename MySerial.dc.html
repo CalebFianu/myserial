@@ -1,0 +1,2168 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="_ds/myserial-design-system-514ab496-18c2-4186-b67b-20dd981a2e12/tokens/fonts.css">
+<link rel="stylesheet" href="_ds/myserial-design-system-514ab496-18c2-4186-b67b-20dd981a2e12/tokens/colors.css">
+<link rel="stylesheet" href="_ds/myserial-design-system-514ab496-18c2-4186-b67b-20dd981a2e12/tokens/typography.css">
+<link rel="stylesheet" href="_ds/myserial-design-system-514ab496-18c2-4186-b67b-20dd981a2e12/tokens/spacing.css">
+<link rel="stylesheet" href="_ds/myserial-design-system-514ab496-18c2-4186-b67b-20dd981a2e12/tokens/effects.css">
+<link rel="stylesheet" href="_ds/myserial-design-system-514ab496-18c2-4186-b67b-20dd981a2e12/styles.css">
+<script src="_ds/myserial-design-system-514ab496-18c2-4186-b67b-20dd981a2e12/_ds_bundle.js"></script>
+<style>
+html,body{margin:0;padding:0;background:#0C1014;}
+body{font-family:"Figtree",system-ui,sans-serif;color:#F2F5F8;}
+a{color:#4CB8FF;text-decoration:none;}
+a:hover{color:#8ED2FF;}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+::-webkit-scrollbar{width:0;height:0;}
+@keyframes toastIn{from{opacity:0;transform:translate(-50%,10px);}to{opacity:1;transform:translate(-50%,0);}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+@keyframes sheetUp{from{transform:translateY(24px);}to{transform:translateY(0);}}
+</style>
+</helmet>
+<div style="min-height:100dvh;display:flex;justify-content:center;background:var(--desk,#07090b);">
+<div style="width:min(430px,100vw);height:100dvh;background:var(--bg-app);position:relative;display:flex;flex-direction:column;overflow:hidden;font-family:var(--font-body);color:var(--text-body);">
+
+<div style="flex:1;overflow-y:auto;overflow-x:hidden;">
+
+<!-- ============ HOME ============ -->
+<sc-if value="{{ vHome }}" hint-placeholder-val="{{ true }}">
+<div data-screen-label="Home" style="padding:20px 20px 120px;animation:fadeUp var(--dur-med) var(--ease-out);">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin:6px 0 2px;">
+    <div style="font-family:var(--font-display);font-size:var(--type-hero);font-weight:700;letter-spacing:var(--track-display);">MySerial<span style="color:var(--signal);">.</span></div>
+    <x-import component-from-global-scope="MySerialDesignSystem_514ab4.IconButton" variant="ghost" label="Binge alerts" badge="{{ true }}" onClick="{{ openAlerts }}" style="{{ bellBtn }}" hint-size="44px,44px">{{ bellIcon }}</x-import>
+  </div>
+  <div style="color:var(--text-muted);font-size:var(--type-caption);margin-bottom:16px;">Track it. Rate it. Binge it.</div>
+
+  <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:26px;">
+    <sc-for list="{{ quickLinks }}" as="q" hint-placeholder-count="3">
+      <div onClick="{{ q.go }}" style="background:var(--surface-card);border:1px solid var(--border-hairline);border-radius:14px;padding:12px 12px 11px;cursor:pointer;" style-hover="background:var(--surface-raised)">
+        <div style="font-size:var(--type-caption);font-weight:600;">{{ q.label }}</div>
+        <div style="font-size:var(--type-micro);color:var(--text-faint);margin-top:3px;">{{ q.sub }}</div>
+      </div>
+    </sc-for>
+  </div>
+
+  <sc-if value="{{ hasPicked }}" hint-placeholder-val="{{ false }}">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px;">
+      <div style="font-size:var(--type-micro);font-weight:700;letter-spacing:var(--track-overline);color:var(--text-faint);text-transform:uppercase;">Your shows</div>
+      <div style="font-size:var(--type-micro);color:var(--text-faint);">{{ pickedCount }}</div>
+    </div>
+    <div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:6px;margin-bottom:26px;">
+      <sc-for list="{{ pickedShows }}" as="p" hint-placeholder-count="3">
+        <div onClick="{{ p.open }}" style="cursor:pointer;flex-shrink:0;">
+          <x-import component-from-global-scope="MySerialDesignSystem_514ab4.PosterPlaceholder" title="{{ p.title }}" width="{{ n96 }}" hint-size="96px,144px"></x-import>
+        </div>
+      </sc-for>
+    </div>
+  </sc-if>
+  <div style="font-size:var(--type-micro);font-weight:700;letter-spacing:var(--track-overline);color:var(--text-faint);text-transform:uppercase;margin-bottom:10px;">Continue watching</div>
+  <div onClick="{{ openGot }}" style="background:var(--surface-card);border:1px solid var(--border-hairline);border-radius:16px;padding:14px;display:flex;gap:14px;cursor:pointer;" style-hover="background:var(--surface-raised)">
+    <x-import component-from-global-scope="MySerialDesignSystem_514ab4.PosterPlaceholder" title="Game of Thrones" width="{{ n72 }}" hint-size="72px,108px"></x-import>
+    <div style="flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:7px;">
+      <div style="font-family:var(--font-display);font-size:var(--type-heading);font-weight:700;letter-spacing:var(--track-display);">Game of Thrones</div>
+      <div style="font-size:var(--type-caption);color:var(--text-muted);">Up next · <span style="font-family:var(--font-code);color:var(--text-body);">{{ nextEpCode }}</span> {{ nextEpTitle }}</div>
+      <x-import component-from-global-scope="MySerialDesignSystem_514ab4.ProgressBar" value="{{ progVal }}" hint-size="100%,4px"></x-import>
+      <div style="font-size:var(--type-micro);color:var(--text-faint);font-weight:600;">{{ progLabel }}</div>
+    </div>
+    <div style="align-self:center;color:var(--signal);font-size:20px;">›</div>
+  </div>
+
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin:26px 0 10px;">
+    <div style="font-size:var(--type-micro);font-weight:700;letter-spacing:var(--track-overline);color:var(--text-faint);text-transform:uppercase;">Binge-ready</div>
+    <x-import component-from-global-scope="MySerialDesignSystem_514ab4.IconButton" variant="ghost" label="Track a show" onClick="{{ openBingeSearch }}" style="{{ bingeAddBtn }}" hint-size="32px,32px">{{ bingeAddIcon }}</x-import>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:12px;">
+    <sc-for list="{{ bingeCards }}" as="b" hint-placeholder-count="2">
+      <div style="background:var(--surface-card);border:1px solid var(--border-hairline);border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:12px;">
+        <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:5px;align-items:flex-start;">
+          <div style="font-family:var(--font-display);font-size:15px;font-weight:600;">{{ b.title }}</div>
+          <div style="font-size:var(--type-caption);color:var(--text-muted);">{{ b.body }}</div>
+        </div>
+      </div>
+    </sc-for>
+    <sc-if value="{{ bingeEmpty }}" hint-placeholder-val="{{ false }}">
+      <div style="background:var(--surface-card);border:1px solid var(--border-hairline);border-radius:16px;padding:18px 16px;display:flex;flex-direction:column;align-items:flex-start;gap:8px;">
+        <div style="font-family:var(--font-display);font-size:15px;font-weight:600;">Nothing left to binge</div>
+        <div style="font-size:var(--type-caption);color:var(--text-muted);line-height:var(--lh-body);text-wrap:pretty;margin-bottom:4px;">You've cleared the list. Want to track another show and wait for it to wrap?</div>
+        <x-import component-from-global-scope="MySerialDesignSystem_514ab4.Button" variant="primary" size="sm" onClick="{{ openBingeSearch }}" hint-size="auto,36px">Track a show</x-import>
+      </div>
+    </sc-if>
+  </div>
+
+  <div style="font-size:var(--type-micro);font-weight:700;letter-spacing:var(--track-overline);color:var(--text-faint);text-transform:uppercase;margin:26px 0 12px;">Popular with friends</div>
+  <div style="display:flex;gap:12px;overflow-x:auto;padding-bottom:6px;">
+    <sc-for list="{{ friendChips }}" as="f" hint-placeholder-count="4">
+      <div onClick="{{ goFriendsTab }}" style="width:112px;flex-shrink:0;cursor:pointer;display:flex;flex-direction:column;gap:8px;">
+        <x-import component-from-global-scope="MySerialDesignSystem_514ab4.PosterPlaceholder" title="{{ f.show }}" width="{{ n112 }}" hint-size="112px,168px"></x-import>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <x-import component-from-global-scope="MySerialDesignSystem_514ab4.Avatar" name="{{ f.full }}" size="{{ n20 }}" hint-size="20px,20px"></x-import>
+          <div style="font-size:var(--type-micro);color:var(--text-faint);">{{ f.name }}</div>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+</div>
+</sc-if>
+
+<!-- ============ UP NEXT ============ -->
+<sc-if value="{{ vUpNext }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="Up next" style="padding:14px 20px 120px;animation:fadeUp var(--dur-med) var(--ease-out);">
+  <x-import component-from-global-scope="MySerialDesignSystem_514ab4.Button" variant="ghost" size="sm" onClick="{{ back }}" style="{{ padLeft0 }}" hint-size="auto,36px">‹ Home</x-import>
+  <div style="font-family:var(--font-display);font-size:var(--type-title);font-weight:700;letter-spacing:var(--track-display);margin:6px 0 4px;">Up next</div>
+  <div style="font-size:var(--type-caption);color:var(--text-muted);margin-bottom:18px;">The next unwatched episode of everything you're on. {{ upNextCount }}.</div>
+  <div style="display:flex;flex-direction:column;gap:10px;">
+    <sc-for list="{{ upNextRows }}" as="u" hint-placeholder-count="4">
+      <div style="background:var(--surface-card);border:1px solid var(--border-hairline);border-radius:16px;padding:12px;display:flex;gap:14px;align-items:center;">
+        <div onClick="{{ u.open }}" style="cursor:pointer;flex-shrink:0;">
+          <x-import component-from-global-scope="MySerialDesignSystem_514ab4.PosterPlaceholder" title="{{ u.title }}" width="{{ n54 }}" hint-size="54px,81px"></x-import>
+        </div>
+        <div onClick="{{ u.open }}" style="flex:1;min-width:0;cursor:pointer;">
+          <div style="font-family:var(--font-display);font-size:var(--type-heading);font-weight:600;">{{ u.title }}</div>
+          <div style="display:flex;align-items:baseline;gap:8px;margin-top:4px;">
+            <span style="font-family:var(--font-code);font-size:var(--type-micro);color:var(--text-faint);">{{ u.code }}</span>
+            <span style="font-size:var(--type-caption);color:var(--text-body);">{{ u.ep }}</span>
+          </div>
+          <div style="font-size:var(--type-micro);color:var(--text-faint);margin-top:5px;">{{ u.air }} · {{ u.left }}</div>
+        </div>
+        <x-import component-from-global-scope="MySerialDesignSystem_514ab4.Button" variant="secondary" size="sm" onClick="{{ u.mark }}" hint-size="auto,36px">Watched</x-import>
+      </div>
+    </sc-for>
+  </div>
+</div>
+</sc-if>
+
+<!-- ============ DIARY ============ -->
+<sc-if value="{{ vDiary }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="Diary" style="padding:14px 20px 120px;animation:fadeUp var(--dur-med) var(--ease-out);">
+  <x-import component-from-global-scope="MySerialDesignSystem_514ab4.Button" variant="ghost" size="sm" onClick="{{ back }}" style="{{ padLeft0 }}" hint-size="auto,36px">‹ Home</x-import>
+  <div style="font-family:var(--font-display);font-size:var(--type-title);font-weight:700;letter-spacing:var(--track-display);margin:6px 0 4px;">Diary</div>
+  <div style="font-size:var(--type-caption);color:var(--text-muted);margin-bottom:8px;">Everything you've watched, newest first.</div>
+  <sc-for list="{{ diaryGroups }}" as="g" hint-placeholder-count="2">
+    <div style="margin-top:20px;">
+      <div style="font-size:var(--type-micro);font-weight:700;letter-spacing:var(--track-overline);color:var(--text-faint);text-transform:uppercase;margin-bottom:10px;">{{ g.label }}</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <sc-for list="{{ g.rows }}" as="d" hint-placeholder-count="4">
+          <div onClick="{{ d.open }}" style="background:var(--surface-card);border:1px solid var(--border-hairline);border-radius:14px;padding:12px 14px;display:flex;gap:14px;align-items:center;cursor:pointer;" style-hover="background:var(--surface-raised)">
+            <div style="width:42px;flex-shrink:0;text-align:center;">
+              <div style="font-family:var(--font-display);font-size:20px;font-weight:700;line-height:1;">{{ d.day }}</div>
+              <div style="font-size:9px;font-weight:700;letter-spacing:var(--track-overline);color:var(--text-faint);margin-top:3px;">{{ d.mon }}</div>
+            </div>
+            <div style="width:1px;align-self:stretch;background:var(--border-hairline);"></div>
+            <div style="flex:1;min-width:0;">
+              <div style="font-size:var(--type-body);font-weight:600;">{{ d.title }}</div>
+              <div style="display:flex;align-items:baseline;gap:8px;margin-top:3px;">
+                <span style="font-family:var(--font-code);font-size:var(--type-micro);color:var(--text-faint);">{{ d.code }}</span>
+                <span style="font-size:var(--type-caption);color:var(--text-muted);">{{ d.ep }}</span>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <x-import component-from-global-scope="MySerialDesignSystem_514ab4.RatingStars" value="{{ d.stars }}" size="{{ n12 }}" hint-size="64px,13px"></x-import>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </sc-for>
+</div>
+</sc-if>
+
+<!-- ============ STATS ============ -->
+<sc-if value="{{ vStats }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="Stats" style="padding:14px 20px 120px;animation:fadeUp var(--dur-med) var(--ease-out);">
+  <x-import component-from-global-scope="MySerialDesignSystem_514ab4.Button" variant="ghost" size="sm" onClick="{{ back }}" style="{{ padLeft0 }}" hint-size="auto,36px">‹ Home</x-import>
+  <div style="font-family:var(--font-display);font-size:var(--type-title);font-weight:700;letter-spacing:var(--track-display);margin:6px 0 4px;">Your year</div>
+  <div style="font-size:var(--type-caption);color:var(--text-muted);margin-bottom:18px;">Built from what you've marked and rated.</div>
+  <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:24px;">
+    <sc-for list="{{ statCards }}" as="sc" hint-placeholder-count="4">
+      <div style="background:var(--surface-card);border:1px solid var(--border-hairline);border-radius:16px;padding:14px 16px;">
+        <div style="font-family:var(--font-display);font-size:var(--type-title);font-weight:700;letter-spacing:var(--track-display);">{{ sc.value }}</div>
+        <div style="font-size:var(--type-micro);color:var(--text-faint);text-transform:uppercase;letter-spacing:var(--track-overline);margin-top:4px;">{{ sc.label }}</div>
+      </div>
+    </sc-for>
+  </div>
+  <div style="font-size:var(--type-micro);font-weight:700;letter-spacing:var(--track-overline);color:var(--text-faint);text-transform:uppercase;margin-bottom:10px;">How you rate</div>
+  <div style="background:var(--surface-card);border:1px solid var(--border-hairline);border-radius:16px;padding:16px;margin-bottom:24px;">
+    <x-import component-from-global-scope="MySerialDesignSystem_514ab4.RatingHistogram" bins="{{ statBins }}" average="{{ statAvg }}" hint-size="100%,64px"></x-import>
+    <div style="font-size:var(--type-micro);color:var(--text-faint);margin-top:10px;">{{ statRatedLabel }}</div>
+  </div>
+  <div style="font-size:var(--type-micro);font-weight:700;letter-spacing:var(--track-overline);color:var(--text-faint);text-transform:uppercase;margin-bottom:10px;">Top genres</div>
+  <div style="display:flex;flex-direction:column;gap:12px;">
+    <sc-for list="{{ genreRows }}" as="gr" hint-placeholder-count="4">
+      <div>
+        <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px;">
+          <div style="font-size:var(--type-caption);font-weight:600;">{{ gr.name }}</div>
+          <div style="font-size:var(--type-micro);color:var(--text-faint);">{{ gr.count }}</div>
+        </div>
+        <div style="height:6px;border-radius:99px;background:var(--surface-pressed);overflow:hidden;">
+          <div style="height:100%;width:{{ gr.pct }};background:var(--signal);border-radius:99px;"></div>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+</div>
+</sc-if>
+
+<!-- ============ SEARCH ============ -->
+<sc-if value="{{ vSearch }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="Search" style="padding:20px 20px 120px;animation:fadeUp var(--dur-med) var(--ease-out);">
+  <div style="font-family:var(--font-display);font-size:var(--type-title);font-weight:700;letter-spacing:var(--track-display);margin:6px 0 16px;">Search</div>
+  <x-import component-from-global-scope="MySerialDesignSystem_514ab4.SearchField" placeholder="Shows, actors, crew…" value="{{ query }}" onChange="{{ setQueryV }}" hint-size="100%,48px"></x-import>
+  <div style="margin:14px 0 18px;position:relative;display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:2px;padding:3px;border-radius:14px;background:var(--surface-card);border:1px solid var(--border-hairline);">
+    <div style="{{ segPill }}"></div>
+    <sc-for list="{{ segOpts }}" as="so" hint-placeholder-count="2">
+      <div onClick="{{ so.pick }}" style="position:relative;z-index:1;height:36px;display:flex;align-items:center;justify-content:center;border-radius:11px;cursor:pointer;font-size:14px;font-weight:600;transition:color var(--dur-fast);color:{{ so.color }};">{{ so.label }}</div>
+    </sc-for>
+  </div>
+  <div style="display:flex;align-items:center;justify-content:space-between;margin:-6px 0 12px;">
+    <div style="font-size:var(--type-micro);font-weight:700;letter-spacing:var(--track-overline);color:var(--text-faint);text-transform:uppercase;">{{ resultCount }}</div>
+    <div style="display:flex;gap:6px;">
+      <x-import component-from-global-scope="MySerialDesignSystem_514ab4.IconButton" variant="ghost" label="Grid view" onClick="{{ setGrid }}" style="{{ gridBtnStyle }}" hint-size="34px,34px">{{ gridIcon }}</x-import>
+      <x-import component-from-global-scope="MySerialDesignSystem_514ab4.IconButton" variant="ghost" label="List view" onClick="{{ setList }}" style="{{ listBtnStyle }}" hint-size="34px,34px">{{ listIcon }}</x-import>
+    </div>
+  </div>
+  <sc-if value="{{ segShows }}" hint-placeholder-val="{{ true }}">
+    <sc-if value="{{ isGrid }}" hint-placeholder-val="{{ true }}">
+      <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px 12px;">
+        <sc-for list="{{ showResults }}" as="s" hint-placeholder-count="6">
+          <div onClick="{{ s.open }}" style="cursor:pointer;display:flex;flex-direction:column;gap:7px;">
+            <x-import component-from-global-scope="MySerialDesignSystem_514ab4.PosterPlaceholder" title="{{ s.title }}" width="{{ n118 }}" dc-props="{{ posterProps }}" hint-size="100%,177px"></x-import>
+            <div style="font-size:var(--type-micro);color:var(--text-faint);line-height:1.25;">{{ s.years }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+    <sc-if value="{{ isList }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <sc-for list="{{ showResults }}" as="s" hint-placeholder-count="4">
+          <div onClick="{{ s.open }}" style="background:var(--surface-card);border:1px solid var(--border-hairline);border-radius:16px;padding:12px 14px;display:flex;gap:12px;align-items:center;cursor:pointer;" style-hover="background:var(--surface-raised)">
+            <x-import component-from-global-scope="MySerialDesignSystem_514ab4.PosterPlaceholder" title="{{ s.title }}" width="{{ n44 }}" hint-size="44px,66px"></x-import>
+            <div style="flex:1;min-width:0;">
+              <div style="font-family:var(--font-display);font-size:var(--type-body);font-weight:600;">{{ s.title }}</div>
+              <div style="font-size:var(--type-caption);color:var(--text-muted);margin-top:3px;">{{ s.meta }}</div>
+            </div>
+            <div style="color:var(--text-faint);font-size:18px;">›</div>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+  </sc-if>
+  <sc-if value="{{ segPeople }}" hint-placeholder-val="{{ false }}">
+    <sc-if value="{{ isGrid }}" hint-placeholder-val="{{ true }}">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px 12px;">
+        <sc-for list="{{ peopleResults }}" as="p" hint-placeholder-count="6">
+          <div onClick="{{ p.open }}" style="cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;">
+            <x-import component-from-global-scope="MySerialDesignSystem_514ab4.Avatar" name="{{ p.name }}" size="{{ n84 }}" hint-size="84px,84px"></x-import>
+            <div style="font-family:var(--font-display);font-size:var(--type-caption);font-weight:600;line-height:1.25;">{{ p.name }}</div>
+            <div style="font-size:var(--type-micro);color:var(--text-faint);line-height:1.25;">{{ p.shortRole }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+    <sc-if value="{{ isList }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <sc-for list="{{ peopleResults }}" as="p" hint-placeholder-count="4">
+          <div onClick="{{ p.open }}" style="background:var(--surface-card);border:1px solid var(--border-hairline);border-radius:16px;padding:12px 14px;display:flex;gap:12px;align-items:center;cursor:pointer;" style-hover="background:var(--surface-raised)">
+            <x-import component-from-global-scope="MySerialDesignSystem_514ab4.Avatar" name="{{ p.name }}" size="{{ n44 }}" hint-size="44px,44px"></x-import>
+            <div style="flex:1;min-width:0;">
+              <div style="font-family:var(--font-display);font-size:var(--type-body);font-weight:600;">{{ p.name }}</div>
+              <div style="font-size:var(--type-caption);color:var(--text-muted);margin-top:3px;">{{ p.role }}</div>
+            </div>
+            <div style="color:var(--text-faint);font-size:18px;">›</div>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+  </sc-if>
+</div>
+</sc-if>
+
+<!-- ============ SHOW DETAIL ============ -->
+<sc-if value="{{ vShow }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="Show detail" style="animation:fadeUp var(--dur-med) var(--ease-out);">
+  <div style="position:relative;">
+    <x-import component-from-global-scope="MySerialDesignSystem_514ab4.PosterPlaceholder" title="" width="{{ n430 }}" ratio="{{ r055 }}" radius="0px" hint-size="100%,236px"></x-import>
+    <div style="position:absolute;inset:0;background:var(--scrim-poster);"></div>
+    <div style="position:absolute;top:14px;left:14px;">
+      <x-import component-from-global-scope="MySerialDesignSystem_514ab4.Button" variant="glass" size="sm" onClick="{{ back }}" hint-size="auto,36px">‹ Back</x-import>
+    </div>
+    <div style="position:absolute;left:0;right:0;bottom:0;padding:0 20px 16px;">
+      <div style="display:flex;gap:8px;margin-bottom:8px;">
+        <x-import component-from-global-scope="MySerialDesignSystem_514ab4.Badge" variant="outline" hint-size="auto,20px">{{ showStatus }}</x-import>
+        <x-import component-from-global-scope="MySerialDesignSystem_514ab4.Badge" variant="neutral" hint-size="auto,20px">{{ showEpCount }}</x-import>
+      </div>
+      <div style="font-family:var(--font-display);font-size:var(--type-hero);font-weight:700;letter-spacing:var(--track-display);">{{ showTitle }}</div>
+      <div style="font-size:var(--type-caption);color:var(--text-muted);margin-top:4px;">{{ showMetaLine }}</div>
+    </div>
+  </div>
+  <div style="padding:16px 20px 120px;">
+    <div style="display:flex;gap:10px;margin-bottom:14px;">
+      <sc-if value="{{ gotShow }}" hint-placeholder-val="{{ true }}">
+        <x-import component-from-global-scope="MySerialDesignSystem_514ab4.Button" variant="secondary" size="md" full-width="{{ true }}" onClick="{{ openRecap }}" hint-size="100%,44px">The story so far</x-import>
+      </sc-if>
+      <sc-if value="{{ gotShow }}" hint-placeholder-val="{{ true }}">
+        <x-import component-from-global-scope="MySerialDesignSystem_514ab4.Button" variant="secondary" size="md" full-width="{{ true }}" onClick="{{ openGraph }}" hint-size="100%,44px">Cast graph</x-import>
+      </sc-if>
+      <sc-if value="{{ canAddWatchlist }}" hint-placeholder-val="{{ false }}">
+        <x-import component-from-global-scope="MySerialDesignSystem_514ab4.Button" variant="secondary" size="md" full-width="{{ true }}" onClick="{{ watchlistTap }}" hint-size="100%,44px">Add to watchlist</x-import>
+      </sc-if>
+      <sc-if value="{{ inWatchlist }}" hint-placeholder-val="{{ false }}">
+        <div style="flex:1;min-width:0;height:44px;display:flex;align-items:center;justify-content:center;gap:8px;border-radius:12px;border:1px solid var(--border-hairline);background:var(--surface-card);padding:0 14px;">
+          <div style="font-size:var(--type-caption);font-weight:600;color:var(--text-muted);">Already in your watchlist</div>
+        </div>
+      </sc-if>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;background:var(--surface-card);border:1px solid var(--border-hairline);border-radius:14px;padding:11px 14px;margin-bottom:14px;">
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:var(--type-micro);color:var(--text-faint);text-transform:uppercase;letter-spacing:var(--track-overline);">Where to watch</div>
+        <div style="font-size:var(--type-body);font-weight:600;margin-top:3px;">{{ svcName }}</div>
+      </div>
+      <sc-if value="{{ svcLeavingOn }}" hint-placeholder-val="{{ false }}">
+        <div style="font-size:var(--type-micro);font-weight:600;color:var(--alert);text-align:right;max-width:130px;">{{ svcLeaving }}</div>
+      </sc-if>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+      <x-import component-from-global-scope="MySerialDesignSystem_514ab4.Button" variant="ghost" size="sm" onClick="{{ startRewatch }}" style="{{ padLeft0 }}" hint-size="auto,36px">{{ rewatchLabel }}</x-import>
+      <sc-if value="{{ rewatchOn }}" hint-placeholder-val="{{ false }}">
+        <x-import component-from-global-scope="MySerialDesignSystem_514ab4.Badge" variant="neutral" hint-size="auto,20px">{{ rewatchBadge }}</x-import>
+      </sc-if>
+    </div>
+
+    <div style="font-size:var(--type-body);color:var(--text-muted);line-height:var(--lh-body);text-wrap:pretty;margin-bottom:22px;">{{ showSynopsis }}</div>
+    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px;">
+      <div style="font-size:var(--type-micro);font-weight:700;letter-spacing:var(--track-overline);color:var(--text-faint);text-transform:uppercase;">Seasons</div>
+      <div style="font-size:var(--type-micro);color:var(--text-faint);">Season avg = your episode ratings</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <sc-for list="{{ seasonRows }}" as="sn" hint-placeholder-count="8">
+        <div onClick="{{ sn.open }}" style="background:var(--surface-card);border:1px solid var(--border-hairline);border-radius:16px;padding:13px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;" style-hover="background:var(--surface-raised)">
+          <div style="flex:1;min-width:0;">
+            <div style="font-family:var(--font-display);font-size:var(--type-heading);font-weight:600;">{{ sn.label }}</div>
+            <div style="font-size:var(--type-caption);color:var(--text-muted);margin-top:2px;">{{ sn.sub }}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <x-import component-from-global-scope="MySerialDesignSystem_514ab4.RatingStars" value="{{ sn.avg }}" size="{{ n13 }}" hint-size="70px,14px"></x-import>
+            <div style="font-family:var(--font-display);font-size:var(--type-caption);font-weight:700;color:var(--star);min-width:24px;text-align:right;">{{ sn.avgTxt }}</div>
+          </div>
+          <div style="color:var(--text-faint);font-size:18px;">›</div>
+        </div>
+      </sc-for>
+    </div>
+
+    <sc-if value="{{ hasCast }}" hint-placeholder-val="{{ true }}">
+      <div style="margin-top:26px;">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px;">
+          <div style="font-size:var(--type-micro);font-weight:700;letter-spacing:var(--track-overline);color:var(--text-faint);text-transform:uppercase;">Cast</div>
+          <div onClick="{{ openPeople }}" style="font-size:var(--type-caption);font-weight:600;color:var(--signal);cursor:pointer;">{{ seeAllLabel }}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:2px;">
+          <sc-for list="{{ castRows }}" as="c" hint-placeholder-count="5">
+            <div onClick="{{ c.open }}" style="display:flex;align-items:center;gap:12px;padding:8px 0;cursor:pointer;">
+              <x-import component-from-global-scope="MySerialDesignSystem_514ab4.Avatar" name="{{ c.name }}" size="{{ n40 }}" hint-size="40px,40px"></x-import>
+              <div style="flex:1;min-width:0;">
+                <div style="font-size:var(--type-body);font-weight:600;">{{ c.name }}</div>
+                <div style="font-size:var(--type-caption);color:var(--text-muted);margin-top:1px;">{{ c.role }}</div>
+              </div>
+              <div style="color:var(--text-faint);font-size:18px;">›</div>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="font-size:var(--type-micro);font-weight:700;letter-spacing:var(--track-overline);color:var(--text-faint);text-transform:uppercase;margin:22px 0 12px;">Crew</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <sc-for list="{{ crewRows }}" as="c" hint-placeholder-count="3">
+            <div onClick="{{ c.open }}" style="background:var(--surface-card);border:1px solid var(--border-hairline);border-radius:12px;padding:11px 14px;display:flex;align-items:center;gap:12px;cursor:pointer;" style-hover="background:var(--surface-raised)">
+              <div style="flex:1;min-width:0;">
+                <div style="font-size:var(--type-body);font-weight:600;">{{ c.name }}</div>
+              </div>
+              <div style="font-size:var(--type-caption);color:var(--text-muted);">{{ c.role }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+  </div>
+</div>
+</sc-if>
+
+<!-- ============ SEASON / EPISODES ============ -->
+<sc-if value="{{ vSeason }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="Season episodes" style="padding:14px 20px 120px;animation:fadeUp var(--dur-med) var(--ease-out);">
+  <x-import component-from-global-scope="MySerialDesignSystem_514ab4.Button" variant="ghost" size="sm" onClick="{{ back }}" style="{{ padLeft0 }}" hint-size="auto,36px">‹ {{ showTitle }}</x-import>
+  <div style="display:flex;align-items:baseline;justify-content:space-between;margin:6px 0 4px;">
+    <div style="font-family:var(--font-display);font-size:var(--type-title);font-weight:700;letter-spacing:var(--track-display);">{{ seasonTitle }}</div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <x-import component-from-global-scope="MySerialDesignSystem_514ab4.RatingStars" value="{{ seasonAvg }}" size="{{ n15 }}" hint-size="80px,16px"></x-import>
+      <span style="font-family:var(--font-display);font-size:var(--type-heading);font-weight:700;color:var(--star);">{{ seasonAvgTxt }}</span>
+    </div>
+  </div>
+  <div style="font-size:var(--type-caption);color:var(--text-muted);margin-bottom:6px;">{{ seasonAvgSub }}</div>
+  <div style="font-size:var(--type-caption);color:var(--text-faint);margin-bottom:14px;">{{ seasonWatchedLabel }}</div>
+  <sc-if value="{{ seasonHasBins }}" hint-placeholder-val="{{ false }}">
+    <div style="background:var(--surface-card);border:1px solid var(--border-hairline);border-radius:16px;padding:14px 16px;margin-bottom:18px;">
+      <div style="font-size:var(--type-micro);color:var(--text-faint);text-transform:uppercase;letter-spacing:var(--track-overline);margin-bottom:10px;">Your ratings this season</div>
+      <x-import component-from-global-scope="MySerialDesignSystem_514ab4.RatingHistogram" bins="{{ seasonBins }}" average="{{ seasonAvg }}" hint-size="100%,56px"></x-import>
+    </div>
+  </sc-if>
+  <div style="display:flex;flex-direction:column;gap:8px;">
+    <sc-for list="{{ epRows }}" as="ep" hint-placeholder-count="10">
+      <div style="background:var(--surface-card);border:1px solid var(--border-hairline);border-radius:16px;padding:12px 14px;display:flex;align-items:center;gap:12px;">
+        <x-import component-from-global-scope="MySerialDesignSystem_514ab4.Checkbox" checked="{{ ep.watched }}" onChange="{{ ep.toggle }}" size="{{ n28 }}" hint-size="28px,28px"></x-import>
+        <div style="flex:1;min-width:0;">
+          <div style="display:flex;align-items:baseline;gap:8px;">
+            <span style="font-family:var(--font-code);font-size:var(--type-micro);color:var(--text-faint);">{{ ep.code }}</span>
+            <span style="font-size:var(--type-body);font-weight:600;color:{{ ep.titleColor }};">{{ ep.title }}</span>
+          </div>
+          <sc-if value="{{ ep.hasRating }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;align-items:center;gap:6px;margin-top:5px;">
+              <x-import component-from-global-scope="MySerialDesignSystem_514ab4.RatingStars" value="{{ ep.rated }}" size="{{ n12 }}" hint-size="64px,13px"></x-import>
+              <span style="font-family:var(--font-display);font-size:var(--type-micro);font-weight:700;color:var(--star);">{{ ep.ratedTxt }}</span>
+            </div>
+          </sc-if>
+        </div>
+        <x-import component-from-global-scope="MySerialDesignSystem_514ab4.Chip" onClick="{{ ep.openRate }}" selected="{{ ep.hasRating }}" hint-size="auto,34px">{{ ep.rateLabel }}</x-import>
+      </div>
+    </sc-for>
+  </div>
+</div>
+</sc-if>
+
+<!-- ============ RECAP ============ -->
+<sc-if value="{{ vRecap }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="Recap" style="padding:14px 20px 120px;animation:fadeUp var(--dur-med) var(--ease-out);">
+  <x-import component-from-global-scope="MySerialDesignSystem_514ab4.Button" variant="ghost" size="sm" onClick="{{ back }}" style="{{ padLeft0 }}" hint-size="auto,36px">‹ Game of Thrones</x-import>
+  <div style="font-family:var(--font-display);font-size:var(--type-title);font-weight:700;letter-spacing:var(--track-display);margin:6px 0 8px;">The story so far</div>
+  <div style="margin-bottom:20px;">
+    <x-import component-from-global-scope="MySerialDesignSystem_514ab4.Badge" variant="signal" hint-size="auto,20px">{{ recapHeader }}</x-import>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:18px;">
+    <sc-for list="{{ recapParas }}" as="r" hint-placeholder-count="3">
+      <div onClick="{{ r.reveal }}" style="border-left:2px solid var(--border-hairline);padding-left:14px;cursor:pointer;">
+        <div style="font-size:var(--type-micro);font-weight:700;letter-spacing:var(--track-overline);color:var(--star);text-transform:uppercase;margin-bottom:6px;">{{ r.range }}</div>
+        <div style="font-size:var(--type-body);color:var(--text-body);line-height:1.6;text-wrap:pretty;filter:{{ r.blur }};transition:filter var(--dur-med) var(--ease-out);">{{ r.text }}</div>
+        <sc-if value="{{ r.guarded }}" hint-placeholder-val="{{ false }}">
+          <div style="font-family:var(--font-code);font-size:var(--type-micro);color:var(--text-faint);margin-top:6px;">tap to reveal</div>
+        </sc-if>
+      </div>
+    </sc-for>
+  </div>
+  <div style="margin-top:24px;background:var(--surface-card);border:1px solid var(--border-hairline);border-radius:16px;padding:14px 16px;font-size:var(--type-caption);color:var(--text-muted);line-height:var(--lh-body);">No spoilers past your last watched episode. Watch more to unlock the next chapter.</div>
+</div>
+</sc-if>
+
+<!-- ============ CAST GRAPH ============ -->
+<sc-if value="{{ vGraph }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="Cast graph" style="padding:14px 20px 120px;animation:fadeUp var(--dur-med) var(--ease-out);">
+  <x-import component-from-global-scope="MySerialDesignSystem_514ab4.Button" variant="ghost" size="sm" onClick="{{ back }}" style="{{ padLeft0 }}" hint-size="auto,36px">‹ Game of Thrones</x-import>
+  <div style="font-family:var(--font-display);font-size:var(--type-title);font-weight:700;letter-spacing:var(--track-display);margin:6px 0 4px;">Who you've met</div>
+  <div style="font-size:var(--type-caption);color:var(--text-muted);margin-bottom:10px;">{{ graphSub }} · Tap a character</div>
+  <div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:10px;">
+    <sc-for list="{{ legend }}" as="lg" hint-placeholder-count="4">
+      <div style="display:flex;align-items:center;gap:6px;">
+        <div style="width:9px;height:9px;border-radius:99px;background:{{ lg.color }};"></div>
+        <span style="font-size:var(--type-micro);color:var(--text-muted);font-weight:600;">{{ lg.name }}</span>
+      </div>
+    </sc-for>
+  </div>
+  <div style="position:relative;width:100%;aspect-ratio:360/470;background:var(--surface-card);border:1px solid var(--border-hairline);border-radius:16px;overflow:hidden;">
+    <svg viewBox="0 0 360 470" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;">
+      <sc-for list="{{ graphEdges }}" as="e" hint-placeholder-count="6">
+        <line x1="{{ e.x1 }}" y1="{{ e.y1 }}" x2="{{ e.x2 }}" y2="{{ e.y2 }}" stroke="{{ e.stroke }}" stroke-width="1.5"></line>
+      </sc-for>
+    </svg>
+    <sc-if value="{{ edgeLabelsOn }}" hint-placeholder-val="{{ false }}">
+      <sc-for list="{{ graphEdges }}" as="e" hint-placeholder-count="6">
+        <div style="position:absolute;left:{{ e.lxPct }};top:{{ e.lyPct }};transform:translate(-50%,-50%);font-family:var(--font-code);font-size:8px;color:var(--text-faint);background:var(--surface-card);padding:0 3px;white-space:nowrap;pointer-events:none;">{{ e.label }}</div>
+      </sc-for>
+    </sc-if>
+    <sc-for list="{{ graphNodes }}" as="n" hint-placeholder-count="8">
+      <div onClick="{{ n.pick }}" style="position:absolute;left:{{ n.leftPct }};top:{{ n.topPct }};transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;">
+        <div style="width:32px;height:32px;border-radius:99px;background:{{ n.fill }};border:2px solid {{ n.stroke }};display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:11px;font-weight:700;color:#0C1014;">{{ n.initials }}</div>
+        <div style="font-size:9.5px;font-weight:600;color:var(--text-body);white-space:nowrap;text-shadow:0 1px 4px #0C1014;">{{ n.name }}</div>
+      </div>
+    </sc-for>
+  </div>
+  <sc-if value="{{ hasSel }}" hint-placeholder-val="{{ true }}">
+    <div style="margin-top:12px;background:var(--surface-card);border:1px solid var(--border-hairline);border-radius:16px;padding:16px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+        <div style="width:12px;height:12px;border-radius:99px;background:{{ selColor }};"></div>
+        <div style="font-family:var(--font-display);font-size:var(--type-heading);font-weight:700;">{{ selName }}</div>
+        <div style="font-family:var(--font-code);font-size:var(--type-micro);color:var(--text-faint);margin-left:auto;">{{ selMet }}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <sc-for list="{{ selConns }}" as="c" hint-placeholder-count="3">
+          <div style="font-size:var(--type-caption);color:var(--text-muted);"><span style="font-weight:700;color:var(--text-body);">{{ c.who }}</span> — {{ c.how }}</div>
+        </sc-for>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</sc-if>
+
+<!-- ============ CAST & CREW ============ -->
+<sc-if value="{{ vPeople }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="Cast &amp; crew" style="padding:14px 20px 120px;animation:fadeUp var(--dur-med) var(--ease-out);">
+  <div style="position:sticky;top:0;z-index:2;margin:-14px -20px 0;padding:14px 20px 8px;background:var(--nav-glass);backdrop-filter:var(--blur-glass);-webkit-backdrop-filter:var(--blur-glass);">
+    <x-import component-from-global-scope="MySerialDesignSystem_514ab4.Button" variant="secondary" size="sm" onClick="{{ back }}" hint-size="auto,36px">‹ {{ showTitle }}</x-import>
+  </div>
+  <div style="font-family:var(--font-display);font-size:var(--type-title);font-weight:700;letter-spacing:var(--track-display);margin:12px 0 4px;">Cast &amp; crew</div>
+  <div style="font-size:var(--type-caption);color:var(--text-muted);margin-bottom:16px;">{{ peopleSub }}</div>
+  <x-import component-from-global-scope="MySerialDesignSystem_514ab4.SearchField" placeholder="Search names or roles…" value="{{ peopleQuery }}" onChange="{{ setPeopleQuery }}" hint-size="100%,48px"></x-import>
+
+  <sc-if value="{{ peopleEmpty }}" hint-placeholder-val="{{ false }}">
+    <div style="margin-top:28px;font-size:var(--type-caption);color:var(--text-muted);">No one here by that name. Try a role, like “composer”.</div>
+  </sc-if>
+
+  <sc-for list="{{ peopleGroups }}" as="g" hint-placeholder-count="2">
+    <div style="margin-top:22px;">
+      <div style="font-size:var(--type-micro);font-weight:700;letter-spacing:var(--track-overline);color:var(--text-faint);text-transform:uppercase;margin-bottom:10px;">{{ g.label }}</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <sc-for list="{{ g.rows }}" as="p" hint-placeholder-count="4">
+          <div onClick="{{ p.open }}" style="background:var(--surface-card);border:1px solid var(--border-hairline);border-radius:14px;padding:10px 12px;display:flex;align-items:center;gap:12px;cursor:pointer;" style-hover="background:var(--surface-raised)">
+            <x-import component-from-global-scope="MySerialDesignSystem_514ab4.Avatar" name="{{ p.name }}" size="{{ n40 }}" hint-size="40px,40px"></x-import>
+            <div style="flex:1;min-width:0;">
+              <div style="font-size:var(--type-body);font-weight:600;">{{ p.name }}</div>
+              <div style="font-size:var(--type-micro);color:var(--text-faint);margin-top:2px;">{{ p.role }}</div>
+            </div>
+            <div style="color:var(--text-faint);font-size:16px;">›</div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </sc-for>
+</div>
+</sc-if>
+
+<!-- ============ PERSON ============ -->
+<sc-if value="{{ vPerson }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="Person" style="padding:14px 20px 120px;animation:fadeUp var(--dur-med) var(--ease-out);">
+  <x-import component-from-global-scope="MySerialDesignSystem_514ab4.Button" variant="ghost" size="sm" onClick="{{ back }}" style="{{ padLeft0 }}" hint-size="auto,36px">‹ Back</x-import>
+  <div style="display:flex;align-items:center;gap:16px;margin:8px 0 24px;">
+    <x-import component-from-global-scope="MySerialDesignSystem_514ab4.Avatar" name="{{ personName }}" size="{{ n72 }}" hint-size="72px,72px"></x-import>
+    <div>
+      <div style="font-family:var(--font-display);font-size:var(--type-title);font-weight:700;letter-spacing:var(--track-display);">{{ personName }}</div>
+      <div style="font-size:var(--type-caption);color:var(--text-muted);margin-top:3px;">{{ personRole }}</div>
+    </div>
+  </div>
+  <div style="font-size:var(--type-micro);font-weight:700;letter-spacing:var(--track-overline);color:var(--text-faint);text-transform:uppercase;margin-bottom:10px;">Known for</div>
+  <div style="display:flex;flex-direction:column;gap:8px;">
+    <sc-for list="{{ personCredits }}" as="cr" hint-placeholder-count="4">
+      <div onClick="{{ cr.open }}" style="background:var(--surface-card);border:1px solid var(--border-hairline);border-radius:16px;padding:12px 14px;display:flex;gap:12px;align-items:center;cursor:pointer;" style-hover="background:var(--surface-raised)">
+        <x-import component-from-global-scope="MySerialDesignSystem_514ab4.PosterPlaceholder" title="{{ cr.title }}" width="{{ n40 }}" hint-size="40px,60px"></x-import>
+        <div style="flex:1;min-width:0;">
+          <div style="font-family:var(--font-display);font-size:var(--type-body);font-weight:600;">{{ cr.title }}</div>
+          <div style="font-size:var(--type-caption);color:var(--text-muted);margin-top:3px;">{{ cr.meta }}</div>
+        </div>
+        <div style="color:var(--text-faint);font-size:18px;">›</div>
+      </div>
+    </sc-for>
+  </div>
+</div>
+</sc-if>
+
+<!-- ============ LIST DETAIL ============ -->
+<sc-if value="{{ vListDetail }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="List detail" style="padding:14px 20px 120px;animation:fadeUp var(--dur-med) var(--ease-out);">
+  <x-import component-from-global-scope="MySerialDesignSystem_514ab4.Button" variant="ghost" size="sm" onClick="{{ back }}" style="{{ padLeft0 }}" hint-size="auto,36px">‹ Lists</x-import>
+  <div style="display:flex;align-items:baseline;gap:10px;margin:6px 0 6px;">
+    <div style="font-family:var(--font-display);font-size:var(--type-title);font-weight:700;letter-spacing:var(--track-display);">{{ listName }}</div>
+    <div style="font-size:var(--type-micro);color:var(--text-faint);margin-left:auto;white-space:nowrap;">{{ listCount }}</div>
+  </div>
+  <div style="font-size:var(--type-body);color:var(--text-muted);line-height:var(--lh-body);margin-bottom:14px;text-wrap:pretty;">{{ listNote }}</div>
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
+    <sc-if value="{{ listShared }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0;">
+        <sc-for list="{{ listSharedWith }}" as="sw" hint-placeholder-count="2">
+          <x-import component-from-global-scope="MySerialDesignSystem_514ab4.Avatar" name="{{ sw.name }}" size="{{ n20 }}" hint-size="20px,20px"></x-import>
+        </sc-for>
+        <div style="font-size:var(--type-micro);color:var(--text-faint);">{{ listSharedLabel }}</div>
+      </div>
+    </sc-if>
+    <x-import component-from-global-scope="MySerialDesignSystem_514ab4.Button" variant="secondary" size="sm" onClick="{{ inviteToList }}" style="{{ marginLeftAuto }}" hint-size="auto,36px">Invite</x-import>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px 12px;">
+    <sc-for list="{{ listShows }}" as="ls" hint-placeholder-count="6">
+      <div onClick="{{ ls.open }}" style="cursor:pointer;">
+        <x-import component-from-global-scope="MySerialDesignSystem_514ab4.PosterPlaceholder" title="{{ ls.title }}" width="{{ n118 }}" dc-props="{{ posterProps }}" hint-size="100%,177px"></x-import>
+      </div>
+    </sc-for>
+  </div>
+</div>
+</sc-if>
+
+<!-- ============ LISTS ============ -->
+<sc-if value="{{ vLists }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="Profile" style="padding:20px 20px 120px;animation:fadeUp var(--dur-med) var(--ease-out);">
+  <div style="display:flex;align-items:center;gap:16px;margin:6px 0 18px;">
+    <x-import component-from-global-scope="MySerialDesignSystem_514ab4.Avatar" name="{{ meName }}" size="{{ n72 }}" ring="{{ true }}" hint-size="72px,72px"></x-import>
+    <div style="flex:1;min-width:0;">
+      <div style="font-family:var(--font-display);font-size:var(--type-title);font-weight:700;letter-spacing:var(--track-display);">{{ meName }}</div>
+      <div style="font-family:var(--font-code);font-size:var(--type-caption);color:var(--text-muted);margin-top:3px;">{{ meHandle }}</div>
+    </div>
+    <x-import component-from-global-scope="MySerialDesignSystem_514ab4.IconButton" variant="ghost" label="{{ themeLabel }}" onClick="{{ toggleTheme }}" style="{{ themeBtn }}" hint-size="44px,44px">{{ themeIcon }}</x-import>
+  </div>
+  <div style="font-size:var(--type-body);color:var(--text-muted);line-height:var(--lh-body);margin-bottom:16px;text-wrap:pretty;">{{ meBio }}</div>
+  <div style="display:flex;gap:10px;margin-bottom:16px;">
+    <sc-for list="{{ meStats }}" as="st" hint-placeholder-count="3">
+      <div style="flex:1;background:var(--surface-card);border:1px solid var(--border-hairline);border-radius:16px;padding:12px 14px;">
+        <div style="font-family:var(--font-display);font-size:var(--type-heading);font-weight:700;">{{ st.value }}</div>
+        <div style="font-size:var(--type-micro);color:var(--text-faint);text-transform:uppercase;letter-spacing:var(--track-overline);margin-top:3px;">{{ st.label }}</div>
+      </div>
+    </sc-for>
+  </div>
+  <div style="margin-bottom:18px;">
+    <x-import component-from-global-scope="MySerialDesignSystem_514ab4.Button" variant="secondary" size="md" full-width="{{ true }}" onClick="{{ openEdit }}" hint-size="100%,44px">Edit profile</x-import>
+  </div>
+
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+    <div style="font-size:var(--type-micro);font-weight:700;letter-spacing:var(--track-overline);color:var(--text-faint);text-transform:uppercase;">My shows</div>
+    <div style="font-size:var(--type-caption);color:var(--text-muted);">{{ myShowsCount }}</div>
+  </div>
+  <div style="margin-bottom:14px;position:relative;display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:2px;padding:3px;border-radius:14px;background:var(--surface-card);border:1px solid var(--border-hairline);">
+    <div style="{{ myShowsPill }}"></div>
+    <sc-for list="{{ myShowsOpts }}" as="mo" hint-placeholder-count="2">
+      <div onClick="{{ mo.pick }}" style="position:relative;z-index:1;height:36px;display:flex;align-items:center;justify-content:center;border-radius:11px;cursor:pointer;font-size:14px;font-weight:600;transition:color var(--dur-fast);color:{{ mo.color }};">{{ mo.label }}</div>
+    </sc-for>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:26px;">
+    <sc-for list="{{ myShows }}" as="m" hint-placeholder-count="4">
+      <div onClick="{{ m.open }}" style="background:var(--surface-card);border:1px solid var(--border-hairline);border-radius:16px;padding:12px;display:flex;gap:14px;align-items:center;cursor:pointer;" style-hover="background:var(--surface-raised)">
+        <x-import component-from-global-scope="MySerialDesignSystem_514ab4.PosterPlaceholder" title="{{ m.title }}" width="{{ n54 }}" hint-size="54px,81px"></x-import>
+        <div style="flex:1;min-width:0;">
+          <div style="font-family:var(--font-display);font-size:var(--type-heading);font-weight:600;">{{ m.title }}</div>
+          <div style="font-family:var(--font-code);font-size:var(--type-micro);color:var(--text-faint);text-transform:uppercase;letter-spacing:var(--track-overline);margin-top:4px;">{{ m.overline }}</div>
+          <div style="font-size:var(--type-caption);color:var(--text-muted);margin-top:6px;">{{ m.sub }}</div>
+          <sc-if value="{{ m.inProgress }}" hint-placeholder-val="{{ true }}">
+            <div style="margin-top:9px;">
+              <x-import component-from-global-scope="MySerialDesignSystem_514ab4.ProgressBar" value="{{ m.pct }}" hint-size="100%,6px"></x-import>
+            </div>
+          </sc-if>
+        </div>
+        <div style="color:var(--text-faint);font-size:18px;">›</div>
+      </div>
+    </sc-for>
+    <sc-if value="{{ myShowsEmpty }}" hint-placeholder-val="{{ false }}">
+      <div style="background:var(--surface-card);border:1px solid var(--border-hairline);border-radius:16px;padding:22px 16px;text-align:center;">
+        <div style="font-size:var(--type-body);color:var(--text-muted);">{{ myShowsEmptyText }}</div>
+      </div>
+    </sc-if>
+  </div>
+
+  <div onClick="{{ openWatchlist }}" style="background:var(--surface-card);border:1px solid var(--border-hairline);border-radius:16px;padding:16px;cursor:pointer;margin-bottom:22px;" style-hover="background:var(--surface-raised)">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+      <x-import component-from-global-scope="MySerialDesignSystem_514ab4.Badge" variant="signal" hint-size="auto,20px">Watchlist</x-import>
+      <div style="font-size:var(--type-caption);color:var(--text-muted);margin-left:auto;">{{ watchlistCount }}</div>
+    </div>
+    <div style="display:flex;gap:8px;overflow-x:auto;">
+      <sc-for list="{{ watchlist }}" as="w" hint-placeholder-count="4">
+        <x-import component-from-global-scope="MySerialDesignSystem_514ab4.PosterPlaceholder" title="{{ w.title }}" width="{{ n78 }}" hint-size="78px,117px"></x-import>
+      </sc-for>
+    </div>
+  </div>
+
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+    <div style="font-size:var(--type-micro);font-weight:700;letter-spacing:var(--track-overline);color:var(--text-faint);text-transform:uppercase;">Your lists</div>
+    <x-import component-from-global-scope="MySerialDesignSystem_514ab4.Button" variant="ghost" size="sm" onClick="{{ toastNewList }}" hint-size="auto,36px">New list</x-import>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:12px;">
+    <sc-for list="{{ customLists }}" as="l" hint-placeholder-count="3">
+      <div onClick="{{ l.open }}" style="background:var(--surface-card);border:1px solid var(--border-hairline);border-radius:16px;padding:14px 16px;cursor:pointer;" style-hover="background:var(--surface-raised)">
+        <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:10px;">
+          <div style="font-family:var(--font-display);font-size:var(--type-heading);font-weight:600;">{{ l.name }}</div>
+          <div style="font-size:var(--type-micro);color:var(--text-faint);margin-left:auto;white-space:nowrap;">{{ l.count }}</div>
+        </div>
+        <div style="font-size:var(--type-caption);color:var(--text-muted);margin-bottom:12px;line-height:var(--lh-body);">{{ l.note }}</div>
+        <sc-if value="{{ l.shared }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+            <sc-for list="{{ l.sharedWith }}" as="sw" hint-placeholder-count="2">
+              <x-import component-from-global-scope="MySerialDesignSystem_514ab4.Avatar" name="{{ sw.name }}" size="{{ n20 }}" hint-size="20px,20px"></x-import>
+            </sc-for>
+            <div style="font-size:var(--type-micro);color:var(--text-faint);">{{ l.sharedLabel }}</div>
+          </div>
+        </sc-if>
+        <div style="display:flex;gap:8px;overflow-x:auto;">
+          <sc-for list="{{ l.shows }}" as="ls" hint-placeholder-count="4">
+            <x-import component-from-global-scope="MySerialDesignSystem_514ab4.PosterPlaceholder" title="{{ ls }}" width="{{ n66 }}" hint-size="66px,99px"></x-import>
+          </sc-for>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+</div>
+</sc-if>
+
+<!-- ============ FRIENDS ============ -->
+<sc-if value="{{ vFriends }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="Activity" style="padding:20px 20px 120px;animation:fadeUp var(--dur-med) var(--ease-out);">
+  <div style="font-family:var(--font-display);font-size:var(--type-title);font-weight:700;letter-spacing:var(--track-display);margin:6px 0 14px;">Activity</div>
+  <div style="margin-bottom:18px;position:relative;display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:2px;padding:3px;border-radius:14px;background:var(--surface-card);border:1px solid var(--border-hairline);">
+    <div style="{{ friendsPill }}"></div>
+    <sc-for list="{{ friendsOpts }}" as="fo" hint-placeholder-count="2">
+      <div onClick="{{ fo.pick }}" style="position:relative;z-index:1;height:36px;display:flex;align-items:center;justify-content:center;border-radius:11px;cursor:pointer;font-size:14px;font-weight:600;transition:color var(--dur-fast);color:{{ fo.color }};">{{ fo.label }}</div>
+    </sc-for>
+  </div>
+
+  <sc-if value="{{ showActivityTab }}" hint-placeholder-val="{{ true }}">
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <sc-for list="{{ activityRows }}" as="av" hint-placeholder-count="4">
+        <div style="background:var(--surface-card);border:1px solid var(--border-hairline);border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:12px;">
+          <div style="flex:1;min-width:0;font-size:var(--type-caption);color:var(--text-body);line-height:var(--lh-body);">{{ av.text }}</div>
+          <div style="font-size:var(--type-micro);color:var(--text-faint);white-space:nowrap;">{{ av.when }}</div>
+        </div>
+      </sc-for>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ showFriendsTab }}" hint-placeholder-val="{{ false }}">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+    <div style="font-family:var(--font-display);font-size:var(--type-heading);font-weight:700;">Friends</div>
+    <x-import component-from-global-scope="MySerialDesignSystem_514ab4.Button" variant="primary" size="sm" onClick="{{ toastAddFriend }}" hint-size="auto,36px">Add friend</x-import>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:10px;">
+    <sc-for list="{{ friendRows }}" as="fr" hint-placeholder-count="4">
+      <div style="background:var(--surface-card);border:1px solid var(--border-hairline);border-radius:16px;padding:14px 16px;display:flex;gap:14px;align-items:center;">
+        <x-import component-from-global-scope="MySerialDesignSystem_514ab4.Avatar" name="{{ fr.name }}" size="{{ n46 }}" hint-size="46px,46px"></x-import>
+        <div style="flex:1;min-width:0;">
+          <div style="font-family:var(--font-display);font-size:var(--type-heading);font-weight:600;">{{ fr.name }}</div>
+          <div style="font-size:var(--type-caption);color:var(--text-muted);margin-top:3px;">Watching <span style="color:var(--signal);font-weight:600;">{{ fr.show }}</span> · <span style="font-family:var(--font-code);">{{ fr.ep }}</span></div>
+        </div>
+        <div style="font-size:var(--type-micro);color:var(--text-faint);white-space:nowrap;">{{ fr.when }}</div>
+      </div>
+    </sc-for>
+  </div>
+
+  <div style="font-size:var(--type-micro);font-weight:700;letter-spacing:var(--track-overline);color:var(--text-faint);text-transform:uppercase;margin:26px 0 12px;">Reviews from friends</div>
+  <div style="display:flex;flex-direction:column;gap:10px;">
+    <sc-for list="{{ reviewRows }}" as="rv" hint-placeholder-count="3">
+      <div onClick="{{ rv.open }}" style="background:var(--surface-card);border:1px solid var(--border-hairline);border-radius:16px;padding:14px 16px;cursor:pointer;" style-hover="background:var(--surface-raised)">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+          <x-import component-from-global-scope="MySerialDesignSystem_514ab4.Avatar" name="{{ rv.who }}" size="{{ n28 }}" hint-size="28px,28px"></x-import>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:var(--type-caption);font-weight:600;">{{ rv.who }}</div>
+            <div style="font-family:var(--font-code);font-size:var(--type-micro);color:var(--text-faint);margin-top:2px;">{{ rv.meta }}</div>
+          </div>
+          <x-import component-from-global-scope="MySerialDesignSystem_514ab4.RatingStars" value="{{ rv.stars }}" size="{{ n12 }}" hint-size="64px,13px"></x-import>
+        </div>
+        <div style="font-size:var(--type-caption);color:var(--text-muted);line-height:var(--lh-body);text-wrap:pretty;">{{ rv.text }}</div>
+        <div style="font-size:var(--type-micro);color:var(--text-faint);margin-top:8px;">{{ rv.when }}</div>
+      </div>
+    </sc-for>
+  </div>
+  </sc-if>
+</div>
+</sc-if>
+
+<!-- ============ ALERTS ============ -->
+<sc-if value="{{ vAlerts }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="Binge alerts" style="padding:14px 20px 120px;animation:fadeUp var(--dur-med) var(--ease-out);">
+  <x-import component-from-global-scope="MySerialDesignSystem_514ab4.Button" variant="ghost" size="sm" onClick="{{ back }}" style="{{ padLeft0 }}" hint-size="auto,36px">‹ Home</x-import>
+  <div style="font-family:var(--font-display);font-size:var(--type-title);font-weight:700;letter-spacing:var(--track-display);margin:6px 0 4px;">Binge alerts</div>
+  <div style="font-size:var(--type-caption);color:var(--text-muted);margin-bottom:18px;">We'll ping you when a season — or a whole show — wraps.</div>
+  <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:26px;">
+    <sc-for list="{{ alertCards }}" as="a" hint-placeholder-count="2">
+      <div style="background:var(--surface-card);border:1px solid var(--border-hairline);border-radius:16px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start;">
+        <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:5px;align-items:flex-start;">
+          <x-import component-from-global-scope="MySerialDesignSystem_514ab4.Badge" variant="signal" hint-size="auto,20px">{{ a.tag }}</x-import>
+          <div style="font-family:var(--font-display);font-size:var(--type-heading);font-weight:600;">{{ a.title }}</div>
+          <div style="font-size:var(--type-caption);color:var(--text-muted);line-height:var(--lh-body);">{{ a.body }}</div>
+        </div>
+        <div style="font-size:var(--type-micro);color:var(--text-faint);white-space:nowrap;">{{ a.when }}</div>
+      </div>
+    </sc-for>
+  </div>
+  </div>
+  </sc-if>
+</div>
+<div style="position:absolute;left:0;right:0;bottom:calc(16px + env(safe-area-inset-bottom));display:flex;justify-content:center;pointer-events:none;z-index:8;">
+  <div style="pointer-events:auto;position:relative;display:flex;align-items:center;gap:4px;padding:8px;border-radius:18px;background:var(--nav-glass);backdrop-filter:var(--blur-glass);-webkit-backdrop-filter:var(--blur-glass);box-shadow:var(--shadow-nav);border:1px solid var(--border-hairline);">
+    <div style="{{ navPill }}"></div>
+    <sc-for list="{{ navBtns }}" as="nb" hint-placeholder-count="5">
+      <div onClick="{{ nb.go }}" style="position:relative;z-index:1;width:52px;height:48px;display:flex;align-items:center;justify-content:center;border-radius:12px;cursor:pointer;transition:color var(--dur-fast);color:{{ nb.color }};">{{ nb.icon }}</div>
+    </sc-for>
+  </div>
+</div>
+
+<!-- ============ LOG THIS SHOW? CONFIRM ============ -->
+<sc-if value="{{ askLogOpen }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="Log this show?" onClick="{{ declineLog }}" style="position:absolute;inset:0;z-index:13;background:rgba(7,9,11,.55);backdrop-filter:var(--blur-glass);-webkit-backdrop-filter:var(--blur-glass);display:flex;flex-direction:column;justify-content:flex-end;padding:0 12px calc(12px + env(safe-area-inset-bottom));">
+  <div onClick="{{ stop }}" style="background:var(--surface-card);border:1px solid var(--border-hairline);border-radius:24px;box-shadow:var(--shadow-sheet);padding:20px;animation:sheetUp var(--dur-med) var(--ease-spring);">
+    <div style="font-family:var(--font-display);font-size:var(--type-heading);font-weight:700;letter-spacing:var(--track-display);margin-bottom:6px;">Log {{ askLogTitle }}?</div>
+    <div style="font-size:var(--type-caption);color:var(--text-muted);line-height:var(--lh-body);margin-bottom:18px;text-wrap:pretty;">You're on this show's page — we can start with it selected.</div>
+    <div style="display:flex;gap:10px;">
+      <x-import component-from-global-scope="MySerialDesignSystem_514ab4.Button" variant="secondary" size="md" full-width="{{ true }}" onClick="{{ declineLog }}" hint-size="100%,44px">No, something else</x-import>
+      <x-import component-from-global-scope="MySerialDesignSystem_514ab4.Button" variant="primary" size="md" full-width="{{ true }}" onClick="{{ confirmLog }}" hint-size="100%,44px">Yes, log it</x-import>
+    </div>
+  </div>
+</div>
+</sc-if>
+
+<!-- ============ TRACK A SHOW (BINGE EMPTY STATE) ============ -->
+<sc-if value="{{ bingeSearchOpen }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="Track a show" onClick="{{ closeBingeSearch }}" style="position:absolute;inset:0;z-index:13;background:rgba(7,9,11,.55);backdrop-filter:var(--blur-glass);-webkit-backdrop-filter:var(--blur-glass);display:flex;flex-direction:column;justify-content:flex-end;padding:0 12px calc(12px + env(safe-area-inset-bottom));">
+  <div onClick="{{ stop }}" style="background:var(--surface-card);border:1px solid var(--border-hairline);border-radius:24px;box-shadow:var(--shadow-sheet);padding:20px;animation:sheetUp var(--dur-med) var(--ease-spring);display:flex;flex-direction:column;max-height:76%;">
+    <div style="font-family:var(--font-display);font-size:var(--type-heading);font-weight:700;letter-spacing:var(--track-display);margin-bottom:6px;">Track a show</div>
+    <div style="font-size:var(--type-caption);color:var(--text-muted);line-height:var(--lh-body);margin-bottom:14px;text-wrap:pretty;">Find something that's still on the air and we'll ping you the day it wraps.</div>
+    <x-import component-from-global-scope="MySerialDesignSystem_514ab4.SearchField" placeholder="Search shows…" value="{{ bingeQuery }}" onChange="{{ setBingeQuery }}" hint-size="100%,48px"></x-import>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-top:12px;overflow-y:auto;">
+      <sc-for list="{{ bingeResults }}" as="r" hint-placeholder-count="3">
+        <div style="background:var(--surface-raised);border:1px solid var(--border-hairline);border-radius:16px;padding:10px 12px;display:flex;align-items:center;gap:12px;">
+          <x-import component-from-global-scope="MySerialDesignSystem_514ab4.PosterPlaceholder" title="{{ r.title }}" width="{{ n36 }}" hint-size="36px,54px"></x-import>
+          <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px;">
+            <div style="font-family:var(--font-display);font-size:14px;font-weight:600;">{{ r.title }}</div>
+            <div style="font-size:var(--type-micro);color:var(--text-muted);">{{ r.meta }}</div>
+          </div>
+          <sc-if value="{{ r.canTrack }}" hint-placeholder-val="{{ true }}">
+            <x-import component-from-global-scope="MySerialDesignSystem_514ab4.Button" variant="secondary" size="sm" onClick="{{ r.track }}" hint-size="auto,36px">Track</x-import>
+          </sc-if>
+          <sc-if value="{{ r.ended }}" hint-placeholder-val="{{ false }}">
+            <div style="width:104px;flex-shrink:0;text-align:right;font-size:var(--type-micro);color:var(--text-faint);line-height:1.35;text-wrap:pretty;">{{ r.note }}</div>
+          </sc-if>
+        </div>
+      </sc-for>
+    </div>
+    <sc-if value="{{ bingeNoResults }}" hint-placeholder-val="{{ false }}">
+      <div style="font-size:var(--type-caption);color:var(--text-faint);padding:14px 2px 2px;">No shows match that. Try another title.</div>
+    </sc-if>
+  </div>
+</div>
+</sc-if>
+
+<!-- ============ ADD SHOW MODAL ============ -->
+<sc-if value="{{ addOpen }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="Add show" style="position:absolute;inset:0;z-index:12;background:rgba(7,9,11,.55);backdrop-filter:var(--blur-glass);-webkit-backdrop-filter:var(--blur-glass);display:flex;flex-direction:column;justify-content:flex-end;padding:96px 16px 24px;" onClick="{{ closeAdd }}">
+  <div onClick="{{ stop }}" style="background:var(--surface-card);border:1px solid var(--border-hairline);border-radius:24px;box-shadow:var(--shadow-sheet);display:flex;flex-direction:column;max-height:100%;overflow:hidden;animation:sheetUp var(--dur-med) var(--ease-out);">
+    <div style="padding:18px 18px 14px;display:flex;flex-direction:column;gap:12px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+        <div style="font-family:var(--font-display);font-size:var(--type-heading);font-weight:700;letter-spacing:var(--track-display);">Add a show</div>
+        <div style="flex-shrink:0;display:flex;">
+          <x-import component-from-global-scope="MySerialDesignSystem_514ab4.IconButton" variant="ghost" label="Close" onClick="{{ closeAdd }}" style="{{ closeBtn }}" hint-size="36px,36px">{{ closeIcon }}</x-import>
+        </div>
+      </div>
+      <sc-if value="{{ addNoSel }}" hint-placeholder-val="{{ true }}">
+        <x-import component-from-global-scope="MySerialDesignSystem_514ab4.SearchField" placeholder="Type a show name…" value="{{ pickQuery }}" onChange="{{ setPickQuery }}" hint-size="100%,48px"></x-import>
+      </sc-if>
+    </div>
+
+    <sc-if value="{{ addHasSel }}" hint-placeholder-val="{{ false }}">
+    <div style="flex:1;overflow-y:auto;padding:0 18px 18px;animation:fadeUp var(--dur-fast) var(--ease-out);">
+      <div style="display:flex;gap:12px;align-items:center;padding:12px;border-radius:16px;background:var(--bg-app);border:1px solid var(--border-hairline);margin-bottom:18px;">
+        <x-import component-from-global-scope="MySerialDesignSystem_514ab4.PosterPlaceholder" title="{{ selTitle }}" width="{{ n54 }}" hint-size="54px,81px"></x-import>
+        <div style="flex:1;min-width:0;">
+          <div style="font-family:var(--font-display);font-size:var(--type-body);font-weight:600;line-height:1.2;">{{ selTitle }}</div>
+          <div style="font-size:var(--type-micro);color:var(--text-faint);margin-top:4px;">{{ selMeta }}</div>
+        </div>
+        <x-import component-from-global-scope="MySerialDesignSystem_514ab4.Button" variant="ghost" size="sm" onClick="{{ clearSel }}" hint-size="auto,36px">Change</x-import>
+      </div>
+
+      <div style="font-size:var(--type-micro);font-weight:700;letter-spacing:var(--track-overline);color:var(--text-faint);text-transform:uppercase;margin-bottom:10px;">How do you want to log it?</div>
+      <div style="position:relative;display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:2px;padding:3px;border-radius:14px;background:var(--bg-app);border:1px solid var(--border-hairline);">
+        <div style="{{ addModePill }}"></div>
+        <sc-for list="{{ addModeOpts }}" as="ao" hint-placeholder-count="3">
+          <div onClick="{{ ao.pick }}" style="position:relative;z-index:1;height:36px;display:flex;align-items:center;justify-content:center;border-radius:11px;cursor:pointer;font-size:14px;font-weight:600;transition:color var(--dur-fast);color:{{ ao.color }};">{{ ao.label }}</div>
+        </sc-for>
+      </div>
+
+      <sc-if value="{{ modeWatching }}" hint-placeholder-val="{{ true }}">
+        <div style="margin-top:18px;">
+          <div style="font-size:var(--type-caption);color:var(--text-muted);margin-bottom:10px;">Which episode are you on?</div>
+          <div style="font-size:var(--type-micro);color:var(--text-faint);text-transform:uppercase;letter-spacing:var(--track-overline);margin-bottom:8px;">Season</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;">
+            <sc-for list="{{ selSeasons }}" as="s" hint-placeholder-count="4">
+              <div style="opacity:{{ s.op }};"><x-import component-from-global-scope="MySerialDesignSystem_514ab4.Chip" onClick="{{ s.pick }}" selected="{{ s.on }}" hint-size="auto,34px">{{ s.label }}</x-import></div>
+            </sc-for>
+          </div>
+          <div style="font-size:var(--type-micro);color:var(--text-faint);text-transform:uppercase;letter-spacing:var(--track-overline);margin-bottom:8px;">Episode</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <sc-for list="{{ selEpisodes }}" as="e" hint-placeholder-count="10">
+              <div style="opacity:{{ e.op }};"><x-import component-from-global-scope="MySerialDesignSystem_514ab4.Chip" onClick="{{ e.pick }}" selected="{{ e.on }}" hint-size="auto,34px">{{ e.label }}</x-import></div>
+            </sc-for>
+          </div>
+          <div style="font-size:var(--type-caption);color:var(--text-muted);margin-top:12px;">{{ watchingSummary }}</div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ modeWatched }}" hint-placeholder-val="{{ false }}">
+        <div style="margin-top:18px;display:flex;flex-direction:column;gap:12px;">
+          <div style="font-size:var(--type-caption);color:var(--text-muted);">{{ watchedSummary }}</div>
+          <x-import component-from-global-scope="MySerialDesignSystem_514ab4.Input" label="When did you finish?" type="date" value="{{ addDate }}" onChange="{{ setAddDate }}" hint-size="100%,74px"></x-import>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <sc-for list="{{ dateShortcuts }}" as="d" hint-placeholder-count="3">
+              <x-import component-from-global-scope="MySerialDesignSystem_514ab4.Chip" onClick="{{ d.pick }}" selected="{{ d.on }}" hint-size="auto,34px">{{ d.label }}</x-import>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ modeList }}" hint-placeholder-val="{{ false }}">
+        <div style="margin-top:18px;display:flex;flex-direction:column;gap:8px;">
+          <sc-for list="{{ addListRows }}" as="l" hint-placeholder-count="4">
+            <div onClick="{{ l.toggle }}" style="background:var(--bg-app);border:1px solid {{ l.ring }};border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px;cursor:pointer;" style-hover="background:var(--surface-raised)">
+              <x-import component-from-global-scope="MySerialDesignSystem_514ab4.Checkbox" checked="{{ l.on }}" size="{{ n28 }}" hint-size="28px,28px"></x-import>
+              <div style="flex:1;min-width:0;">
+                <div style="font-size:var(--type-body);font-weight:600;">{{ l.name }}</div>
+                <div style="font-size:var(--type-micro);color:var(--text-faint);margin-top:2px;">{{ l.count }}</div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <div style="margin-top:20px;">
+        <x-import component-from-global-scope="MySerialDesignSystem_514ab4.Button" variant="primary" size="lg" full-width="{{ true }}" onClick="{{ saveAdd }}" hint-size="100%,52px">{{ saveAddLabel }}</x-import>
+      </div>
+    </div>
+    </sc-if>
+
+    <sc-if value="{{ addNoSel }}" hint-placeholder-val="{{ true }}">
+    <div style="flex:1;overflow-y:auto;padding:0 18px 18px;">
+      <sc-if value="{{ addIdle }}" hint-placeholder-val="{{ true }}">
+        <div style="font-size:var(--type-caption);color:var(--text-faint);line-height:var(--lh-body);padding:6px 2px 8px;">Start typing to find a show. Tap a result to choose how you want to log it.</div>
+      </sc-if>
+      <sc-if value="{{ addEmpty }}" hint-placeholder-val="{{ false }}">
+        <div style="font-size:var(--type-caption);color:var(--text-muted);padding:6px 2px 8px;">No matches. Try another spelling.</div>
+      </sc-if>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <sc-for list="{{ addResults }}" as="ar" hint-placeholder-count="3">
+          <div onClick="{{ ar.toggle }}" style="display:flex;gap:12px;padding:10px;border-radius:16px;background:{{ ar.bg }};border:1px solid {{ ar.ring }};cursor:pointer;" style-hover="background:var(--surface-raised)">
+            <x-import component-from-global-scope="MySerialDesignSystem_514ab4.PosterPlaceholder" title="{{ ar.title }}" width="{{ n54 }}" hint-size="54px,81px"></x-import>
+            <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:4px;">
+              <div style="font-family:var(--font-display);font-size:var(--type-body);font-weight:600;line-height:1.2;">{{ ar.title }}</div>
+              <div style="font-size:var(--type-micro);color:var(--text-faint);">{{ ar.meta }}</div>
+              <div style="font-size:var(--type-caption);color:var(--text-muted);line-height:1.45;text-wrap:pretty;">{{ ar.desc }}</div>
+            </div>
+            <div style="align-self:center;width:26px;height:26px;border-radius:99px;flex-shrink:0;background:{{ ar.btnBg }};border:1px solid {{ ar.btnBorder }};color:{{ ar.btnColor }};display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;">{{ ar.btnGlyph }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+    </sc-if>
+  </div>
+</div>
+</sc-if>
+
+<!-- ============ EDIT PROFILE SHEET ============ -->
+<sc-if value="{{ editOpen }}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;inset:0;background:rgba(7,9,11,.72);display:flex;align-items:flex-end;z-index:10;" onClick="{{ closeEdit }}">
+  <div onClick="{{ stop }}" style="width:100%;animation:sheetUp var(--dur-med) var(--ease-out);">
+    <x-import component-from-global-scope="MySerialDesignSystem_514ab4.Sheet" title="Edit profile" onClose="{{ closeEdit }}" width="100%" hint-size="100%,420px">
+      <div style="display:flex;flex-direction:column;gap:14px;margin-top:-4px;">
+        <div style="display:flex;align-items:center;gap:14px;">
+          <x-import component-from-global-scope="MySerialDesignSystem_514ab4.Avatar" name="{{ eName }}" size="{{ n64 }}" hint-size="64px,64px"></x-import>
+          <x-import component-from-global-scope="MySerialDesignSystem_514ab4.Button" variant="secondary" size="sm" onClick="{{ toastPhoto }}" hint-size="auto,36px">Change photo</x-import>
+        </div>
+        <x-import component-from-global-scope="MySerialDesignSystem_514ab4.Input" label="Name" value="{{ eName }}" onChange="{{ setEName }}" hint-size="100%,74px"></x-import>
+        <x-import component-from-global-scope="MySerialDesignSystem_514ab4.Input" label="Username" value="{{ eHandle }}" onChange="{{ setEHandle }}" hint-size="100%,74px"></x-import>
+        <x-import component-from-global-scope="MySerialDesignSystem_514ab4.Input" label="Bio" value="{{ eBio }}" onChange="{{ setEBio }}" hint="A line about your taste" hint-size="100%,86px"></x-import>
+        <x-import component-from-global-scope="MySerialDesignSystem_514ab4.Button" variant="primary" size="lg" full-width="{{ true }}" onClick="{{ saveProfile }}" hint-size="100%,52px">Save changes</x-import>
+      </div>
+    </x-import>
+  </div>
+</div>
+</sc-if>
+
+<!-- ============ RATE SHEET ============ -->
+<sc-if value="{{ rateOpen }}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;inset:0;background:rgba(7,9,11,.72);display:flex;align-items:flex-end;z-index:10;" onClick="{{ closeRate }}">
+  <div onClick="{{ stop }}" style="width:100%;animation:sheetUp var(--dur-med) var(--ease-out);">
+    <x-import component-from-global-scope="MySerialDesignSystem_514ab4.Sheet" title="Rate episode" onClose="{{ closeRate }}" width="100%" hint-size="100%,380px">
+      <div style="display:flex;flex-direction:column;gap:2px;margin:0 0 20px;">
+        <span style="font-family:var(--font-code);font-size:var(--type-micro);letter-spacing:var(--track-overline);text-transform:uppercase;color:var(--signal);">{{ rateCode }}</span>
+        <span style="font-family:var(--font-display);font-size:var(--type-heading);font-weight:600;line-height:1.25;">{{ rateTitle }}</span>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:8px;min-height:44px;">
+        <x-import component-from-global-scope="MySerialDesignSystem_514ab4.RatingStars" value="{{ rateVal }}" size="{{ n38 }}" interactive="{{ true }}" onChange="{{ setRateVal }}" hint-size="200px,40px"></x-import>
+        <div style="font-family:var(--font-display);font-size:var(--type-title);font-weight:700;color:var(--star);">{{ rateValTxt }}</div>
+      </div>
+      <div style="font-family:var(--font-code);font-size:var(--type-micro);color:var(--text-faint);margin-bottom:14px;text-align:center;">tap a filled star again for ½</div>
+      <textarea value="{{ rateText }}" onChange="{{ setRateText }}" placeholder="Leave a review (optional)…" style="width:100%;min-height:76px;background:var(--bg-app);border:1px solid var(--border-hairline);border-radius:12px;padding:12px 14px;color:var(--text-body);font-family:var(--font-body);font-size:var(--type-body);outline:none;resize:vertical;" style-focus="border-color:var(--signal)"></textarea>
+      <div style="display:flex;gap:10px;margin-top:14px;">
+        <x-import component-from-global-scope="MySerialDesignSystem_514ab4.Button" variant="secondary" size="md" onClick="{{ clearRate }}" hint-size="auto,44px">Clear</x-import>
+        <x-import component-from-global-scope="MySerialDesignSystem_514ab4.Button" variant="primary" size="md" full-width="{{ true }}" onClick="{{ saveRate }}" hint-size="100%,44px">Save rating</x-import>
+      </div>
+    </x-import>
+  </div>
+</div>
+</sc-if>
+
+<!-- ============ WELCOME / AUTH / ONBOARDING ============ -->
+<sc-if value="{{ authOn }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="Welcome" style="position:absolute;inset:0;z-index:30;background:var(--bg-app);display:flex;flex-direction:column;">
+
+  <sc-if value="{{ stWelcome }}" hint-placeholder-val="{{ true }}">
+  <div style="flex:1;display:flex;flex-direction:column;padding:0 24px 32px;">
+    <div style="flex:1;position:relative;margin:0 -24px 0;overflow:hidden;">
+      <div style="position:absolute;inset:0;display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:20px;transform:rotate(-8deg) scale(1.35);opacity:.5;">
+        <sc-for list="{{ welcomePosters }}" as="wp" hint-placeholder-count="12">
+          <x-import component-from-global-scope="MySerialDesignSystem_514ab4.PosterPlaceholder" title="{{ wp.title }}" width="{{ n118 }}" dc-props="{{ posterProps }}" hint-size="100%,120px"></x-import>
+        </sc-for>
+      </div>
+      <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.55) 0%,rgba(0,0,0,.2) 30%,var(--bg-app) 88%);"></div>
+    </div>
+    <div style="font-family:var(--font-display);font-size:40px;font-weight:700;letter-spacing:var(--track-display);line-height:1.05;margin-bottom:10px;">MySerial<span style="color:var(--signal);">.</span></div>
+    <div style="font-size:var(--type-body);color:var(--text-muted);line-height:var(--lh-body);margin-bottom:24px;max-width:300px;text-wrap:pretty;">Track every episode, rate as you go, and never get spoiled. Your television, on the record.</div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <x-import component-from-global-scope="MySerialDesignSystem_514ab4.Button" variant="primary" size="lg" full-width="{{ true }}" onClick="{{ openSignup }}" hint-size="100%,52px">Create account</x-import>
+      <x-import component-from-global-scope="MySerialDesignSystem_514ab4.Button" variant="ghost" size="lg" full-width="{{ true }}" onClick="{{ openLogin }}" hint-size="100%,52px">I already have an account</x-import>
+    </div>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ stTour }}" hint-placeholder-val="{{ false }}">
+  <div data-screen-label="Onboarding tour" style="flex:1;display:flex;flex-direction:column;padding:24px;animation:fadeUp var(--dur-med) var(--ease-out);">
+    <div style="display:flex;justify-content:flex-end;">
+      <x-import component-from-global-scope="MySerialDesignSystem_514ab4.Button" variant="ghost" size="sm" onClick="{{ skipTour }}" hint-size="auto,36px">Skip</x-import>
+    </div>
+    <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:22px;">
+      <div style="width:64px;height:64px;border-radius:20px;background:var(--signal-soft);border:1px solid rgba(255,92,56,.28);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:26px;font-weight:700;color:var(--signal);">{{ tourNum }}</div>
+      <div>
+        <div style="font-family:var(--font-display);font-size:var(--type-hero);font-weight:700;letter-spacing:var(--track-display);line-height:1.15;margin-bottom:12px;text-wrap:pretty;">{{ tourTitle }}</div>
+        <div style="font-size:var(--type-body);color:var(--text-muted);line-height:var(--lh-body);text-wrap:pretty;">{{ tourBody }}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <sc-for list="{{ tourPoints }}" as="tp" hint-placeholder-count="3">
+          <div style="display:flex;gap:10px;align-items:flex-start;">
+            <div style="width:6px;height:6px;border-radius:99px;background:var(--signal);margin-top:8px;flex-shrink:0;"></div>
+            <div style="font-size:var(--type-caption);color:var(--text-body);line-height:var(--lh-body);">{{ tp.text }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:14px;">
+      <div style="display:flex;gap:6px;">
+        <sc-for list="{{ tourDots }}" as="d" hint-placeholder-count="4">
+          <div style="width:{{ d.w }};height:6px;border-radius:99px;background:{{ d.bg }};transition:all var(--dur-med) var(--ease-out);"></div>
+        </sc-for>
+      </div>
+      <div style="margin-left:auto;">
+        <x-import component-from-global-scope="MySerialDesignSystem_514ab4.Button" variant="primary" size="lg" onClick="{{ tourNext }}" hint-size="auto,52px">{{ tourCta }}</x-import>
+      </div>
+    </div>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ stPick }}" hint-placeholder-val="{{ false }}">
+  <div data-screen-label="Pick shows" style="flex:1;display:flex;flex-direction:column;animation:fadeUp var(--dur-med) var(--ease-out);">
+    <div style="padding:24px 20px 12px;">
+      <div style="font-family:var(--font-display);font-size:var(--type-title);font-weight:700;letter-spacing:var(--track-display);margin-bottom:6px;">Add your first shows</div>
+      <div style="font-size:var(--type-caption);color:var(--text-muted);margin-bottom:14px;">Pick at least three. We'll build your watchlist and start tracking episodes.</div>
+      <x-import component-from-global-scope="MySerialDesignSystem_514ab4.SearchField" placeholder="Search shows…" value="{{ pickQuery }}" onChange="{{ setPickQuery }}" hint-size="100%,48px"></x-import>
+    </div>
+    <div style="flex:1;overflow-y:auto;padding:6px 20px 20px;">
+      <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px 12px;">
+        <sc-for list="{{ pickShows }}" as="ps" hint-placeholder-count="9">
+          <div onClick="{{ ps.toggle }}" style="cursor:pointer;display:flex;flex-direction:column;gap:7px;opacity:{{ ps.opacity }};transition:opacity var(--dur-fast) var(--ease-out);">
+            <div style="position:relative;border-radius:var(--r-poster);overflow:hidden;border:2px solid {{ ps.ring }};">
+              <x-import component-from-global-scope="MySerialDesignSystem_514ab4.PosterPlaceholder" title="{{ ps.title }}" width="{{ n118 }}" dc-props="{{ posterProps }}" hint-size="100%,177px"></x-import>
+              <sc-if value="{{ ps.on }}" hint-placeholder-val="{{ false }}">
+                <div style="position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:99px;background:var(--signal);color:#0C1014;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;">✓</div>
+              </sc-if>
+            </div>
+            <div style="font-size:var(--type-micro);color:var(--text-faint);line-height:1.25;">{{ ps.years }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+    <div style="padding:12px 20px calc(20px + env(safe-area-inset-bottom));border-top:1px solid var(--border-hairline);background:var(--surface-card);">
+      <x-import component-from-global-scope="MySerialDesignSystem_514ab4.Button" variant="primary" size="lg" full-width="{{ true }}" disabled="{{ pickDisabled }}" onClick="{{ finishOnboarding }}" hint-size="100%,52px">{{ pickCta }}</x-import>
+    </div>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ modalOn }}" hint-placeholder-val="{{ false }}">
+  <div style="position:absolute;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:flex-end;z-index:5;" onClick="{{ closeModal }}">
+    <div onClick="{{ stop }}" style="width:100%;animation:sheetUp var(--dur-med) var(--ease-out);">
+      <x-import component-from-global-scope="MySerialDesignSystem_514ab4.Sheet" title="{{ modalTitle }}" onClose="{{ closeModal }}" width="100%" hint-size="100%,420px">
+        <div style="display:flex;flex-direction:column;gap:14px;margin-top:-4px;">
+          <sc-if value="{{ isSignup }}" hint-placeholder-val="{{ false }}">
+            <x-import component-from-global-scope="MySerialDesignSystem_514ab4.Input" label="Name" placeholder="Dana Kerr" value="{{ fName }}" onChange="{{ setName }}" hint-size="100%,74px"></x-import>
+          </sc-if>
+          <x-import component-from-global-scope="MySerialDesignSystem_514ab4.Input" label="Email" type="email" placeholder="you@example.com" value="{{ fEmail }}" onChange="{{ setEmail }}" hint-size="100%,74px"></x-import>
+          <x-import component-from-global-scope="MySerialDesignSystem_514ab4.Input" label="Password" type="password" placeholder="••••••••" value="{{ fPass }}" onChange="{{ setPass }}" hint="{{ passHint }}" hint-size="100%,86px"></x-import>
+          <x-import component-from-global-scope="MySerialDesignSystem_514ab4.Button" variant="primary" size="lg" full-width="{{ true }}" onClick="{{ submitAuth }}" hint-size="100%,52px">{{ modalCta }}</x-import>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="flex:1;height:1px;background:var(--border-hairline);"></div>
+            <div style="font-size:var(--type-micro);color:var(--text-faint);text-transform:uppercase;letter-spacing:var(--track-overline);">or</div>
+            <div style="flex:1;height:1px;background:var(--border-hairline);"></div>
+          </div>
+          <x-import component-from-global-scope="MySerialDesignSystem_514ab4.Button" variant="secondary" size="lg" full-width="{{ true }}" onClick="{{ submitAuth }}" hint-size="100%,52px">Continue with Apple</x-import>
+          <div onClick="{{ swapAuth }}" style="text-align:center;font-size:var(--type-caption);color:var(--text-muted);cursor:pointer;padding:4px 0 2px;">{{ swapLabel }} <span style="color:var(--signal);font-weight:600;">{{ swapAction }}</span></div>
+        </div>
+      </x-import>
+    </div>
+  </div>
+  </sc-if>
+
+</div>
+</sc-if>
+
+<!-- ============ TOAST ============ -->
+<sc-if value="{{ toastOn }}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;bottom:104px;left:16px;right:16px;z-index:20;display:flex;justify-content:center;animation:toastIn var(--dur-med) var(--ease-out);">
+  <x-import component-from-global-scope="MySerialDesignSystem_514ab4.Toast" dc-props="{{ toastProps }}" hint-size="220px,48px">
+    <span>{{ toast }}</span>
+    <sc-if value="{{ toastCanUndo }}" hint-placeholder-val="{{ false }}">
+      <span onClick="{{ runUndo }}" style="margin-left:12px;font-weight:700;color:var(--signal);cursor:pointer;white-space:nowrap;">Undo</span>
+    </sc-if>
+  </x-import>
+</div>
+</sc-if>
+
+</div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 430, &quot;height&quot;: 900}, &quot;theme&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;Dark&quot;, &quot;Light&quot;], &quot;default&quot;: &quot;Dark&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Theme&quot;}, &quot;pitchBlack&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Theme&quot;}, &quot;borderlessCards&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Theme&quot;}, &quot;squareCorners&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Theme&quot;}, &quot;startAt&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;Welcome&quot;, &quot;Straight to app&quot;], &quot;default&quot;: &quot;Welcome&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Flow&quot;}, &quot;spoilerGuard&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Recap&quot;}, &quot;edgeLabels&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Cast graph&quot;}}">
+class Component extends DCLogic {
+  state = {
+    tab: 'home', view: 'home', stack: [],
+    watched: { '1-1': 1, '1-2': 1, '1-3': 1, '1-4': 1, '1-5': 1, '1-6': 1 },
+    ratings: { '1-1': { s: 9, review: 'What an opener. Hooked.' }, '1-3': { s: 8 }, '1-5': { s: 9 } },
+    rateKey: null, rateS: 0, rateText: '',
+    query: '', seg: 'Shows', resultView: 'grid', selNode: 'ned',
+    alertQuery: '',
+    alertItems: [
+      { id: 'hotdS3', title: 'House of the Dragon \u00b7 Season 3', sub: 'Alert me when the season finishes airing' },
+      { id: 'hotdEnd', title: 'House of the Dragon \u00b7 Series', sub: 'Alert me when the whole show ends' },
+      { id: 'dunkS1', title: 'A Knight of the Seven Kingdoms \u00b7 S1', sub: 'Alert me when the season finishes airing' }
+    ],
+    toggles: { hotdS3: true, hotdEnd: false, dunkS1: true },
+    revealed: {}, toast: '', toastUndo: null, showT: 'Game of Thrones', myShowsTab: 'Watching',
+    rewatch: { 'Chernobyl': 1 }, themeOverride: null, peopleQuery: '', askLog: null, addSel: null, addMode: 'Watching', addSn: 1, addEp: 1, addDate: '', addLists: {},
+    stage: 'welcome', modal: null, tourI: 0, picked: {},
+    fName: '', fEmail: '', fPass: '',
+    me: { name: 'Dana Kerr', handle: '@danakerr', bio: 'Slow-burn dramas, prestige sci-fi, and one guilty reality show.' },
+    editOpen: false, eName: '', eHandle: '', eBio: '',
+    bingeDone: {}, bingeSearchOpen: false, bingeQuery: '', bingeAdded: [], friendsTab: 'Activity', activityLog: []
+  };
+
+  BINGE = [
+    { key: 'hotd2', show: 'House of the Dragon', title: 'House of the Dragon — Season 2', body: '8 episodes ready. No week-long waits.' },
+    { key: 'dark', show: 'Dark', title: 'Dark — the whole show', body: '3 seasons, 26 episodes, one loop.' }
+  ];
+
+  bingeIt(b) {
+    const added = !this.WATCHLIST.includes(b.show);
+    if (added) this.WATCHLIST.push(b.show);
+    this.setState(s => ({ bingeDone: { ...s.bingeDone, [b.key]: 1 } }));
+    this.showToast(added ? b.show + ' added to your watchlist' : b.show + ' is already in your watchlist');
+  }
+
+  addActivity(text) {
+    this.setState(s => ({ activityLog: [{ text, when: 'Just now' }, ...s.activityLog] }));
+  }
+
+  ACTIVITY = [
+    { text: 'You started watching House of the Dragon', when: '2h ago' },
+    { text: 'You added Dark to Binge-ready', when: '1d ago' },
+    { text: 'You added Shogun to your watchlist', when: '3d ago' },
+    { text: 'You added A Knight of the Seven Kingdoms to Waiting to binge', when: '5d ago' }
+  ];
+
+  TOUR = [
+    { title: 'Every episode, on the record', body: 'Tick off what you have watched and MySerial always knows where you left off.', points: ['Mark episodes watched, or just set your last one', 'Half-star ratings and reviews per episode', 'Season averages built from your own ratings'] },
+    { title: 'Never get spoiled again', body: 'The story so far recaps only what you have already seen — nothing past your last episode.', points: ['Chapter recaps that stop where you stopped', 'A cast graph of characters you have met', 'See how they connect, spoiler-free'] },
+    { title: 'Binge on your terms', body: 'Tell us what you are waiting on and we will ping you the day it wraps.', points: ['Alerts when a season finishes airing', 'Alerts when a show ends for good', 'Search any show and start tracking it'] },
+    { title: 'Better with friends', body: 'See what the people you trust are watching right now, episode by episode.', points: ['Friends and their current episode', 'Watchlist and custom lists', 'Share what you are loving'] }
+  ];
+
+  ONBOARD_PICKS = ['Game of Thrones', 'Severance', 'The Bear', 'Succession', 'Dark', 'Shogun', 'Andor', 'Chernobyl', 'Slow Horses', 'The Leftovers', 'Westworld', 'House of the Dragon'];
+
+  PICK_YEARS = { 'Game of Thrones': '2011\u20132019', 'Severance': '2022\u2013', 'The Bear': '2022\u2013', 'Succession': '2018\u20132023', 'Dark': '2017\u20132020', 'Shogun': '2024\u2013', 'Andor': '2022\u20132025', 'Chernobyl': '2019', 'Slow Horses': '2022\u2013', 'The Leftovers': '2014\u20132017', 'Westworld': '2016\u20132022', 'House of the Dragon': '2022\u2013' };
+
+  NETWORKS = { 'Game of Thrones': 'HBO', 'Severance': 'Apple TV+', 'The Bear': 'FX', 'Succession': 'HBO', 'Dark': 'Netflix', 'Shogun': 'FX', 'Andor': 'Disney+', 'Chernobyl': 'HBO', 'Slow Horses': 'Apple TV+', 'The Leftovers': 'HBO', 'Westworld': 'HBO', 'House of the Dragon': 'HBO' };
+
+  DESCS = {
+    'Game of Thrones': 'Noble families fight for the Iron Throne while an ancient enemy stirs beyond the Wall.',
+    'Severance': 'Office workers surgically divide their memories between work and home \u2014 then start asking why.',
+    'The Bear': 'A fine-dining chef inherits his family\u2019s chaotic Chicago sandwich shop.',
+    'Succession': 'A media dynasty\u2019s four children circle their father\u2019s empire, and each other.',
+    'Dark': 'Four families in a German town unravel a time-looping conspiracy after a child vanishes.',
+    'Shogun': 'An English pilot shipwrecks in feudal Japan amid a struggle for the shogunate.',
+    'Andor': 'A cynical thief is pulled into the rebellion taking shape against the Empire.',
+    'Chernobyl': 'The 1986 reactor disaster and the people who lied about it, and the ones who did not.',
+    'Slow Horses': 'MI5\u2019s discarded agents stumble into cases the service would rather bury.',
+    'The Leftovers': 'Three years after 2% of the world vanishes, a town tries to keep living.',
+    'Westworld': 'A western theme park\u2019s synthetic hosts begin remembering what guests do to them.',
+    'House of the Dragon': 'A century before the Iron Throne cracked, the Targaryens turn on each other.'
+  };
+
+  PITCH = {
+    '--bg-app': '#000000', '--ink-0': '#000000', '--ink-1': '#0B0B0D', '--ink-2': '#141417', '--ink-3': '#1D1D21',
+    '--surface-card': '#0B0B0D', '--surface-raised': '#141417', '--surface-pressed': '#1D1D21',
+    '--border-hairline': 'rgba(255,255,255,.09)'
+  };
+
+  plusTap() {
+    const S = this.state;
+    if (S.view === 'show' && S.showT) this.setState({ askLog: S.showT });
+    else this.setState({ addOpen: true, pickQuery: '' });
+  }
+  isLight() {
+    const o = this.state.themeOverride;
+    return o === null || o === undefined ? (this.props.theme ?? 'Dark') === 'Light' : o;
+  }
+  applyTheme() {
+    const light = this.isLight();
+    const pitch = !light && (this.props.pitchBlack ?? true);
+    const root = document.documentElement;
+    Object.keys(this.PITCH).forEach(k => {
+      if (pitch) root.style.setProperty(k, this.PITCH[k]); else root.style.removeProperty(k);
+    });
+    if (light) {
+      root.setAttribute('data-theme', 'light');
+      root.style.setProperty('color-scheme', 'light');
+      root.style.setProperty('--desk', '#E7E4DD');
+      root.style.setProperty('--scrim-poster', 'linear-gradient(180deg,rgba(12,16,20,0) 40%,rgba(12,16,20,.86) 100%)');
+      document.body.style.background = '#E7E4DD';
+      document.body.style.color = '#171D24';
+    } else {
+      root.removeAttribute('data-theme');
+      root.style.removeProperty('color-scheme');
+      root.style.removeProperty('--desk');
+      root.style.removeProperty('--scrim-poster');
+      document.body.style.background = pitch ? '#000' : '#0C1014';
+      document.body.style.color = '#F2F5F8';
+    }
+    if (this.props.borderlessCards ?? false) {
+      root.style.setProperty('--border-hairline', 'transparent');
+      root.style.setProperty('--surface-card', light ? '#FFFFFF' : (pitch ? '#121215' : '#171C21'));
+      root.style.setProperty('--surface-raised', light ? '#FBFAF7' : (pitch ? '#1B1B1F' : '#20262C'));
+    }
+    root.style.setProperty('--r-pill', '12px');
+    if (this.props.squareCorners ?? false) root.style.setProperty('--r-poster', '0px');
+    else root.style.removeProperty('--r-poster');
+  }
+  componentDidMount() {
+    this.applyTheme();
+    const seed = {};
+    this.WATCHING.forEach(w => {
+      const sh = this.show(w.title);
+      for (let s = 1; s <= w.sn; s++) {
+        const last = s < w.sn ? sh.seasons[s - 1] : w.ep;
+        for (let e = 1; e <= last; e++) seed[w.title + '|' + s + '-' + e] = 1;
+      }
+    });
+    this.WATCHED.forEach(w => {
+      const sh = this.show(w.title);
+      sh.seasons.forEach((c, i) => { for (let e = 1; e <= c; e++) seed[w.title + '|' + (i + 1) + '-' + e] = 1; });
+    });
+    this.setState(s => ({ watched: { ...seed, ...s.watched } }));
+    this._start = this.props.startAt ?? 'Welcome';
+    if (this._start === 'Straight to app') this.setState({ stage: 'app' });
+  }
+  componentDidUpdate() {
+    this.applyTheme();
+    const want = this.props.startAt ?? 'Welcome';
+    if (want !== this._start) {
+      this._start = want;
+      this.setState({ stage: want === 'Straight to app' ? 'app' : 'welcome', modal: null, tourI: 0 });
+    }
+  }
+
+  S1 = ['Winter Is Coming', 'The Kingsroad', 'Lord Snow', 'Cripples, Bastards, and Broken Things', 'The Wolf and the Lion', 'A Golden Crown', 'You Win or You Die', 'The Pointy End', 'Baelor', 'Fire and Blood'];
+  SEASONS = [10, 10, 10, 10, 10, 10, 7, 6];
+
+  RECAPS = [
+    { from: 1, to: 2, text: 'King Robert rides north to Winterfell and asks his old friend Ned Stark to become Hand of the King after the sudden death of Jon Arryn. Bran Stark climbs a tower, sees something he should not have, and is pushed from the window by Jaime Lannister. Across the sea, exiled princess Daenerys Targaryen is married off to the Dothraki warlord Khal Drogo by her brother Viserys, who wants an army to retake the throne.' },
+    { from: 3, to: 4, text: 'Ned arrives in King\u2019s Landing and starts pulling at the threads of Jon Arryn\u2019s death, guided (and misled) by Littlefinger. Jon Snow takes the black at the Wall and befriends Tyrion Lannister. Bran wakes from his coma with no memory of his fall \u2014 and survives an assassination attempt. On the road, Catelyn Stark seizes Tyrion, accusing him of sending the assassin.' },
+    { from: 5, to: 6, text: 'Catelyn drags Tyrion to the Eyrie, where he demands trial by combat \u2014 and his champion Bronn wins him his freedom. In King\u2019s Landing, Ned quarrels with Robert over a plot to assassinate the pregnant Daenerys and resigns as Hand. In the east, Viserys drunkenly threatens Daenerys and Drogo crowns him with molten gold. The dragon has no heir but Dany.' },
+    { from: 7, to: 8, text: 'Ned confronts Cersei with the truth about her children \u2014 a fatal act of honor. Robert is mortally wounded on a hunt, and when Ned refuses to back Joffrey\u2019s claim, Littlefinger betrays him and the Lannisters take him prisoner. Arya escapes the purge of Stark men; Sansa is kept close. In the North, Robb Stark calls the banners and marches south to war.' },
+    { from: 9, to: 10, text: 'Against every expectation of mercy, Joffrey orders Ned Stark beheaded before a screaming crowd \u2014 with Arya and Sansa watching. Robb wins a stunning victory and is proclaimed King in the North. At the Wall, Jon chooses duty over revenge. And in Drogo\u2019s funeral pyre, Daenerys walks into the flames and emerges unburnt \u2014 with three living dragons.' }
+  ];
+
+  HOUSES = { stark: '#4CB8FF', lann: '#FFB43A', targ: '#FF5C38', other: '#B48CFF' };
+  HOUSE_NAMES = { stark: 'House Stark', lann: 'House Lannister', targ: 'House Targaryen', other: 'Other' };
+
+  NODES = [
+    { id: 'robb', name: 'Robb', full: 'Robb Stark', h: 'stark', x: 95, y: 45, met: 1 },
+    { id: 'catelyn', name: 'Catelyn', full: 'Catelyn Stark', h: 'stark', x: 40, y: 110, met: 1 },
+    { id: 'ned', name: 'Ned', full: 'Ned Stark', h: 'stark', x: 118, y: 145, met: 1 },
+    { id: 'sansa', name: 'Sansa', full: 'Sansa Stark', h: 'stark', x: 190, y: 105, met: 1 },
+    { id: 'arya', name: 'Arya', full: 'Arya Stark', h: 'stark', x: 205, y: 190, met: 1 },
+    { id: 'bran', name: 'Bran', full: 'Bran Stark', h: 'stark', x: 45, y: 195, met: 1 },
+    { id: 'jon', name: 'Jon', full: 'Jon Snow', h: 'stark', x: 48, y: 280, met: 1 },
+    { id: 'robert', name: 'Robert', full: 'Robert Baratheon', h: 'other', x: 240, y: 42, met: 1 },
+    { id: 'cersei', name: 'Cersei', full: 'Cersei Lannister', h: 'lann', x: 305, y: 95, met: 1 },
+    { id: 'joffrey', name: 'Joffrey', full: 'Joffrey Baratheon', h: 'lann', x: 272, y: 165, met: 1 },
+    { id: 'jaime', name: 'Jaime', full: 'Jaime Lannister', h: 'lann', x: 330, y: 235, met: 1 },
+    { id: 'tyrion', name: 'Tyrion', full: 'Tyrion Lannister', h: 'lann', x: 285, y: 300, met: 1 },
+    { id: 'lf', name: 'Littlefinger', full: 'Petyr \u201cLittlefinger\u201d Baelish', h: 'other', x: 160, y: 255, met: 3 },
+    { id: 'varys', name: 'Varys', full: 'Varys', h: 'other', x: 215, y: 330, met: 3 },
+    { id: 'dany', name: 'Daenerys', full: 'Daenerys Targaryen', h: 'targ', x: 120, y: 385, met: 1 },
+    { id: 'viserys', name: 'Viserys', full: 'Viserys Targaryen', h: 'targ', x: 45, y: 350, met: 1 },
+    { id: 'drogo', name: 'Drogo', full: 'Khal Drogo', h: 'targ', x: 205, y: 425, met: 1 },
+    { id: 'jorah', name: 'Jorah', full: 'Jorah Mormont', h: 'other', x: 295, y: 390, met: 1 }
+  ];
+
+  EDGES = [
+    ['ned', 'catelyn', 'married'], ['ned', 'robb', 'father'], ['ned', 'sansa', 'father'], ['ned', 'arya', 'father'],
+    ['ned', 'bran', 'father'], ['ned', 'jon', 'raised as his son'], ['catelyn', 'bran', 'mother'],
+    ['ned', 'robert', 'old friends'], ['robert', 'cersei', 'married'], ['cersei', 'jaime', 'twins'],
+    ['cersei', 'joffrey', 'mother'], ['jaime', 'tyrion', 'brothers'], ['cersei', 'tyrion', 'siblings, bitterly'],
+    ['sansa', 'joffrey', 'betrothed'], ['jon', 'tyrion', 'unlikely friends'], ['ned', 'lf', 'uneasy allies', 3],
+    ['catelyn', 'lf', 'old flame', 3], ['lf', 'varys', 'rivals', 3], ['varys', 'ned', 'whispers warnings', 3],
+    ['catelyn', 'tyrion', 'took him captive', 4], ['dany', 'viserys', 'siblings'], ['dany', 'drogo', 'married'],
+    ['dany', 'jorah', 'sworn advisor']
+  ];
+
+  PEOPLE = [
+    { id: 'sb', name: 'Sean Bean', role: 'Actor \u00b7 Ned Stark', credits: [['Game of Thrones', 'Ned Stark \u00b7 2011', 'got'], ['Sharpe', 'Richard Sharpe \u00b7 1993\u20132008'], ['Broken', 'Father Michael \u00b7 2017'], ['Time', 'Mark Cobden \u00b7 2021']] },
+    { id: 'ec', name: 'Emilia Clarke', role: 'Actor \u00b7 Daenerys Targaryen', credits: [['Game of Thrones', 'Daenerys Targaryen \u00b7 2011\u20132019', 'got'], ['Secret Invasion', "G'iah \u00b7 2023"]] },
+    { id: 'pd', name: 'Peter Dinklage', role: 'Actor \u00b7 Tyrion Lannister', credits: [['Game of Thrones', 'Tyrion Lannister \u00b7 2011\u20132019', 'got'], ['Nip/Tuck', 'Marlowe Sawyer \u00b7 2006']] },
+    { id: 'lh', name: 'Lena Headey', role: 'Actor \u00b7 Cersei Lannister', credits: [['Game of Thrones', 'Cersei Lannister \u00b7 2011\u20132019', 'got'], ['The Sarah Connor Chronicles', 'Sarah Connor \u00b7 2008\u20132009']] },
+    { id: 'kh', name: 'Kit Harington', role: 'Actor \u00b7 Jon Snow', credits: [['Game of Thrones', 'Jon Snow \u00b7 2011\u20132019', 'got'], ['Gunpowder', 'Robert Catesby \u00b7 2017']] },
+    { id: 'rd', name: 'Ramin Djawadi', role: 'Composer', credits: [['Game of Thrones', 'Composer \u00b7 2011\u20132019', 'got'], ['Westworld', 'Composer \u00b7 2016\u20132022'], ['House of the Dragon', 'Composer \u00b7 2022\u2013'], ['Person of Interest', 'Composer \u00b7 2011\u20132016']] },
+    { id: 'db', name: 'David Benioff', role: 'Writer \u00b7 Showrunner', credits: [['Game of Thrones', 'Creator \u00b7 2011\u20132019', 'got'], ['3 Body Problem', 'Creator \u00b7 2024\u2013']] }
+  ];
+
+  SHOWS = [
+    { id: 'got', title: 'Game of Thrones', years: '2011\u20132019', meta: '2011\u20132019 \u00b7 HBO \u00b7 Ended' },
+    { id: 'hotd', title: 'House of the Dragon', years: '2022\u2013', meta: '2022\u2013 \u00b7 HBO \u00b7 Airing' },
+    { id: 'chern', title: 'Chernobyl', years: '2019', meta: '2019 \u00b7 HBO \u00b7 Miniseries' },
+    { id: 'ww', title: 'Westworld', years: '2016\u20132022', meta: '2016\u20132022 \u00b7 HBO \u00b7 Ended' },
+    { id: 'sev', title: 'Severance', years: '2022\u2013', meta: '2022\u2013 \u00b7 Apple TV+ \u00b7 Airing' },
+    { id: 'dark', title: 'Dark', years: '2017\u20132020', meta: '2017\u20132020 \u00b7 Netflix \u00b7 Ended' },
+    { id: 'bear', title: 'The Bear', years: '2022\u2013', meta: '2022\u2013 \u00b7 FX \u00b7 Airing' },
+    { id: 'succ', title: 'Succession', years: '2018\u20132023', meta: '2018\u20132023 \u00b7 HBO \u00b7 Ended' },
+    { id: 'dunk', title: 'A Knight of the Seven Kingdoms', years: '2026\u2013', meta: '2026\u2013 \u00b7 HBO \u00b7 Airing' }
+  ];
+
+  CAT = {
+    'Game of Thrones': { status: 'Ended', genre: 'Fantasy drama', seasons: [10, 10, 10, 10, 10, 10, 7, 6],
+      synopsis: 'Noble families vie for control of the Iron Throne of Westeros, while an ancient enemy stirs beyond the Wall and a last dragonlord rises in the east.',
+      cast: [['Sean Bean', 'Ned Stark', 'sb'], ['Emilia Clarke', 'Daenerys Targaryen', 'ec'], ['Peter Dinklage', 'Tyrion Lannister', 'pd'], ['Lena Headey', 'Cersei Lannister', 'lh'], ['Kit Harington', 'Jon Snow', 'kh']],
+      crew: [['David Benioff', 'Creator, writer', 'db'], ['D. B. Weiss', 'Creator, writer'], ['Ramin Djawadi', 'Composer', 'rd']] },
+    'House of the Dragon': { status: 'Airing', genre: 'Fantasy drama', seasons: [10, 8],
+      cast: [['Paddy Considine', 'Viserys I Targaryen'], ['Emma D\u2019Arcy', 'Rhaenyra Targaryen'], ['Matt Smith', 'Daemon Targaryen'], ['Olivia Cooke', 'Alicent Hightower'], ['Rhys Ifans', 'Otto Hightower']],
+      crew: [['Ryan Condal', 'Creator, showrunner'], ['George R. R. Martin', 'Co-creator'], ['Ramin Djawadi', 'Composer', 'rd']] },
+    'Chernobyl': { status: 'Miniseries', genre: 'Historical drama', seasons: [5],
+      cast: [['Jared Harris', 'Valery Legasov'], ['Stellan Skarsg\u00e5rd', 'Boris Shcherbina'], ['Emily Watson', 'Ulana Khomyuk'], ['Paul Ritter', 'Anatoly Dyatlov']],
+      crew: [['Craig Mazin', 'Creator, writer'], ['Johan Renck', 'Director'], ['Hildur Gu\u00f0nad\u00f3ttir', 'Composer']] },
+    'Westworld': { status: 'Ended', genre: 'Science fiction', seasons: [10, 10, 8, 8],
+      cast: [['Evan Rachel Wood', 'Dolores Abernathy'], ['Thandiwe Newton', 'Maeve Millay'], ['Jeffrey Wright', 'Bernard Lowe'], ['Ed Harris', 'The Man in Black'], ['Anthony Hopkins', 'Dr. Robert Ford']],
+      crew: [['Jonathan Nolan', 'Co-creator'], ['Lisa Joy', 'Co-creator'], ['Ramin Djawadi', 'Composer', 'rd']] },
+    'Severance': { status: 'Airing', genre: 'Sci-fi thriller', seasons: [9, 10],
+      cast: [['Adam Scott', 'Mark Scout'], ['Britt Lower', 'Helly R.'], ['Zach Cherry', 'Dylan G.'], ['John Turturro', 'Irving B.'], ['Tramell Tillman', 'Seth Milchick']],
+      crew: [['Dan Erickson', 'Creator, writer'], ['Ben Stiller', 'Director, EP'], ['Theodore Shapiro', 'Composer']] },
+    'Dark': { status: 'Ended', genre: 'Sci-fi mystery', seasons: [10, 8, 8],
+      cast: [['Louis Hofmann', 'Jonas Kahnwald'], ['Lisa Vicari', 'Martha Nielsen'], ['Oliver Masucci', 'Ulrich Nielsen'], ['Maja Sch\u00f6ne', 'Hannah Kahnwald']],
+      crew: [['Baran bo Odar', 'Co-creator, director'], ['Jantje Friese', 'Co-creator, writer'], ['Ben Frost', 'Composer']] },
+    'The Bear': { status: 'Airing', genre: 'Comedy drama', seasons: [8, 10, 10, 10],
+      cast: [['Jeremy Allen White', 'Carmy Berzatto'], ['Ayo Edebiri', 'Sydney Adamu'], ['Ebon Moss-Bachrach', 'Richie Jerimovich'], ['Liza Col\u00f3n-Zayas', 'Tina Marrero'], ['Abby Elliott', 'Natalie Berzatto']],
+      crew: [['Christopher Storer', 'Creator, director'], ['Joanna Calo', 'Co-showrunner']] },
+    'Succession': { status: 'Ended', genre: 'Drama', seasons: [10, 10, 9, 10],
+      cast: [['Brian Cox', 'Logan Roy'], ['Jeremy Strong', 'Kendall Roy'], ['Sarah Snook', 'Shiv Roy'], ['Kieran Culkin', 'Roman Roy'], ['Matthew Macfadyen', 'Tom Wambsgans']],
+      crew: [['Jesse Armstrong', 'Creator, writer'], ['Nicholas Britell', 'Composer']] },
+    'A Knight of the Seven Kingdoms': { status: 'Airing', genre: 'Fantasy adventure', seasons: [6],
+      synopsis: 'A hedge knight and his small bald squire ride the Seven Kingdoms a century before the dragons died out.',
+      cast: [['Peter Claffey', 'Ser Duncan the Tall'], ['Dexter Sol Ansell', 'Egg'], ['Finn Bennett', 'Aerion Targaryen'], ['Bertie Carvel', 'Baelor Targaryen']],
+      crew: [['Ira Parker', 'Creator, writer'], ['George R. R. Martin', 'Co-creator'], ['Ramin Djawadi', 'Composer', 'rd']] },
+    'Shogun': { status: 'Airing', genre: 'Historical drama', seasons: [10],
+      cast: [['Hiroyuki Sanada', 'Lord Yoshii Toranaga'], ['Cosmo Jarvis', 'John Blackthorne'], ['Anna Sawai', 'Toda Mariko'], ['Tadanobu Asano', 'Kashigi Yabushige']],
+      crew: [['Rachel Kondo', 'Co-creator'], ['Justin Marks', 'Co-creator, showrunner']] },
+    'Andor': { status: 'Ended', genre: 'Science fiction', seasons: [12, 12],
+      cast: [['Diego Luna', 'Cassian Andor'], ['Stellan Skarsg\u00e5rd', 'Luthen Rael'], ['Genevieve O\u2019Reilly', 'Mon Mothma'], ['Adria Arjona', 'Bix Caleen'], ['Kyle Soller', 'Syril Karn']],
+      crew: [['Tony Gilroy', 'Creator, showrunner'], ['Nicholas Britell', 'Composer']] },
+    'Slow Horses': { status: 'Airing', genre: 'Spy thriller', seasons: [6, 6, 6, 6],
+      cast: [['Gary Oldman', 'Jackson Lamb'], ['Jack Lowden', 'River Cartwright'], ['Kristin Scott Thomas', 'Diana Taverner'], ['Saskia Reeves', 'Catherine Standish']],
+      crew: [['Will Smith', 'Creator, writer'], ['Mick Herron', 'Source novels']] },
+    'The Leftovers': { status: 'Ended', genre: 'Drama', seasons: [10, 10, 8],
+      cast: [['Justin Theroux', 'Kevin Garvey'], ['Carrie Coon', 'Nora Durst'], ['Amy Brenneman', 'Laurie Garvey'], ['Christopher Eccleston', 'Matt Jamison']],
+      crew: [['Damon Lindelof', 'Co-creator'], ['Tom Perrotta', 'Co-creator'], ['Max Richter', 'Composer']] }
+  };
+
+  show(t) {
+    const c = this.CAT[t] || {};
+    const known = this.SHOWS.find(s => s.title === t);
+    const seasons = c.seasons || [8];
+    return {
+      title: t,
+      years: this.PICK_YEARS[t] || (known ? known.years : ''),
+      network: this.NETWORKS[t] || (known ? known.meta.split(' \u00b7 ')[1] : ''),
+      status: c.status || (known ? known.meta.split(' \u00b7 ')[2] : 'Airing'),
+      genre: c.genre || '',
+      synopsis: c.synopsis || this.DESCS[t] || 'No synopsis yet \u2014 add one from the show page.',
+      seasons, eps: seasons.reduce((a, b) => a + b, 0),
+      cast: c.cast || [], crew: c.crew || []
+    };
+  }
+
+  WATCHING = [
+    { title: 'Severance', sn: 2, ep: 6 },
+    { title: 'The Bear', sn: 4, ep: 3 },
+    { title: 'Slow Horses', sn: 3, ep: 5 },
+    { title: 'House of the Dragon', sn: 2, ep: 2 }
+  ];
+
+  WATCHED = [
+    { title: 'Chernobyl', rating: 5, when: 'Jul 2026' },
+    { title: 'Succession', rating: 4.5, when: 'May 2026' },
+    { title: 'Dark', rating: 4.5, when: 'Feb 2026' },
+    { title: 'Westworld', rating: 3, when: 'Nov 2025' }
+  ];
+
+  WATCHLIST = ['Shogun', 'The Leftovers', 'Andor', 'A Knight of the Seven Kingdoms'];
+
+  LISTS = [
+    { name: 'Winter rewatch', note: 'Cold, slow, worth it. One episode a night.', shows: ['Dark', 'The Terror', 'Fargo', 'True Detective'], with: ['Maya Reyes'] },
+    { name: 'Comfort watches', note: 'For when the day was long.', shows: ['Parks and Rec', 'Detectorists', 'Frasier'] },
+    { name: 'Waiting to binge', note: 'Not starting until the finale airs.', shows: ['Shogun', 'Silo', 'A Knight of the Seven Kingdoms'], with: ['Leo Tanaka', 'Priya Nair'] }
+  ];
+
+  FRIENDS = [
+    { name: 'Maya', full: 'Maya Reyes', show: 'Severance', ep: 'S02E07', when: '2h ago' },
+    { name: 'Leo', full: 'Leo Tanaka', show: 'The Bear', ep: 'S03E04', when: '5h ago' },
+    { name: 'Priya', full: 'Priya Nair', show: 'Dark', ep: 'S01E08', when: '1d ago' },
+    { name: 'Sam', full: 'Sam Okafor', show: 'House of the Dragon', ep: 'S02E03', when: '2d ago' }
+  ];
+
+  SERVICES = {
+    'Game of Thrones': ['HBO Max', ''], 'House of the Dragon': ['HBO Max', ''], 'Severance': ['Apple TV+', ''],
+    'Slow Horses': ['Apple TV+', ''], 'The Bear': ['Hulu', ''], 'Shogun': ['Hulu', ''], 'Andor': ['Disney+', ''],
+    'Dark': ['Netflix', 'Leaves Netflix 30 Sep'], 'Westworld': ['Prime Video', ''], 'Chernobyl': ['HBO Max', ''],
+    'Succession': ['HBO Max', ''], 'The Leftovers': ['HBO Max', 'Leaves HBO Max 15 Sep'],
+    'A Knight of the Seven Kingdoms': ['HBO Max', '']
+  };
+
+  AIR = {
+    'Severance': 'New episode Fri, 14 Aug', 'The Bear': 'Aired Thu, 6 Aug',
+    'Slow Horses': 'Aired Wed, 29 Jul', 'House of the Dragon': 'New episode Sun, 16 Aug',
+    'Game of Thrones': 'All episodes available'
+  };
+
+  DIARY = [
+    { day: '08', mon: 'Aug', month: 'August 2026', title: 'Severance', code: 'S02E06', ep: 'Attila', stars: 4.5 },
+    { day: '06', mon: 'Aug', month: 'August 2026', title: 'The Bear', code: 'S04E03', ep: 'Doors', stars: 4 },
+    { day: '02', mon: 'Aug', month: 'August 2026', title: 'Severance', code: 'S02E05', ep: 'Trojan\u2019s Horse', stars: 4.5 },
+    { day: '29', mon: 'Jul', month: 'July 2026', title: 'Slow Horses', code: 'S03E05', ep: 'Episode 5', stars: 3.5 },
+    { day: '24', mon: 'Jul', month: 'July 2026', title: 'Chernobyl', code: 'S01E05', ep: 'Vichnaya Pamyat', stars: 5 },
+    { day: '21', mon: 'Jul', month: 'July 2026', title: 'Chernobyl', code: 'S01E04', ep: 'The Happiness of All Mankind', stars: 5 },
+    { day: '18', mon: 'Jul', month: 'July 2026', title: 'House of the Dragon', code: 'S02E02', ep: 'Rhaenyra the Cruel', stars: 4 },
+    { day: '12', mon: 'Jul', month: 'July 2026', title: 'Game of Thrones', code: 'S01E06', ep: 'A Golden Crown', stars: 4.5 }
+  ];
+
+  REVIEWS = [
+    { who: 'Maya Reyes', show: 'Severance', code: 'S02E07', stars: 5, when: '2h ago', text: 'The hallway sequence is the best thing the show has done. I had to pause and walk around.' },
+    { who: 'Leo Tanaka', show: 'The Bear', code: 'S03E04', stars: 3.5, when: '5h ago', text: 'Beautiful episode, almost no plot. I am fine with that maybe once a season.' },
+    { who: 'Priya Nair', show: 'Dark', code: 'S01E08', stars: 4.5, when: '1d ago', text: 'Finally clicked for me. Drew a family tree on paper and everything.' },
+    { who: 'Sam Okafor', show: 'House of the Dragon', code: 'S02E03', stars: 4, when: '2d ago', text: 'Council scenes carry this one. The dragons can wait.' }
+  ];
+
+  lastWatchedFor(t) {
+    const pfx = this.pfx(t);
+    let best = null;
+    Object.keys(this.state.watched).forEach(k => {
+      if (!this.state.watched[k]) return;
+      if (pfx ? k.indexOf(pfx) !== 0 : k.indexOf('|') >= 0) return;
+      const [s, e] = k.slice(pfx.length).split('-').map(Number);
+      if (!best || s > best[0] || (s === best[0] && e > best[1])) best = [s, e];
+    });
+    return best;
+  }
+
+  icon(paths) {
+    return React.createElement('svg', { width: 22, height: 22, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' },
+      paths.map((d, i) => d[0] === 'c'
+        ? React.createElement('circle', { key: i, cx: d[1], cy: d[2], r: d[3] })
+        : React.createElement('path', { key: i, d: d[1] })));
+  }
+
+  ICONS() {
+    return {
+      home: this.icon([['p', 'm3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z'], ['p', 'M9 22V12h6v10']]),
+      search: this.icon([['c', 11, 11, 8], ['p', 'm21 21-4.3-4.3']]),
+      lists: this.icon([['p', 'M8 6h13'], ['p', 'M8 12h13'], ['p', 'M8 18h13'], ['p', 'M3 6h.01'], ['p', 'M3 12h.01'], ['p', 'M3 18h.01']]),
+      plus: this.icon([['p', 'M12 5v14'], ['p', 'M5 12h14']]),
+      profile: this.icon([['c', 12, 8, 4], ['p', 'M20 21a8 8 0 0 0-16 0']]),
+      friends: this.icon([['p', 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2'], ['c', 9, 7, 4], ['p', 'M22 21v-2a4 4 0 0 0-3-3.87'], ['p', 'M16 3.13a4 4 0 0 1 0 7.75']]),
+      activity: this.icon([['p', 'M22 12h-4l-3 9L9 3l-3 9H2']]),
+      alerts: this.icon([['p', 'M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9'], ['p', 'M10.3 21a1.94 1.94 0 0 0 3.4 0']])
+    };
+  }
+
+  go(view, extra) { this.setState(s => ({ view, stack: [...s.stack, s.view], ...(extra || {}) })); }
+  tab(t) { this.setState({ tab: t, view: t, stack: [] }); }
+  showToast(msg, undo) {
+    this.setState({ toast: msg, toastUndo: undo || null });
+    clearTimeout(this._tt);
+    this._tt = setTimeout(() => this.setState({ toast: '', toastUndo: null }), undo ? 4200 : 2200);
+  }
+
+  epTitle(sn, en, got) { return (got !== false && sn === 1) ? this.S1[en - 1] : 'Episode ' + en; }
+  pfx(t) { return t === 'Game of Thrones' ? '' : t + '|'; }
+  code(sn, en) { return 'S' + String(sn).padStart(2, '0') + 'E' + String(en).padStart(2, '0'); }
+
+  lastWatched() {
+    let best = null;
+    Object.keys(this.state.watched).forEach(k => {
+      if (!this.state.watched[k] || k.indexOf('|') >= 0) return;
+      const [s, e] = k.split('-').map(Number);
+      if (!best || s > best[0] || (s === best[0] && e > best[1])) best = [s, e];
+    });
+    return best;
+  }
+
+  seasonAvg(sn, pfx) {
+    const p = (pfx || '') + sn + '-';
+    const vals = Object.keys(this.state.ratings).filter(k => k.indexOf(p) === 0).map(k => this.state.ratings[k].s);
+    if (!vals.length) return null;
+    return vals.reduce((a, b) => a + b, 0) / vals.length / 2;
+  }
+
+  renderVals() {
+    const S = this.state, v = S.view;
+    const last = this.lastWatched();
+    const lastLabel = last ? this.code(last[0], last[1]) + ' \u2014 ' + this.epTitle(last[0], last[1]) : 'Not started';
+    let next = [1, 1];
+    if (last) next = last[1] < this.SEASONS[last[0] - 1] ? [last[0], last[1] + 1] : (last[0] < 8 ? [last[0] + 1, 1] : null);
+    const s1Watched = Object.keys(S.watched).filter(k => k.indexOf('1-') === 0 && S.watched[k]).length;
+    const gotWatched = Object.keys(S.watched).filter(k => k.indexOf('|') < 0 && S.watched[k]).length;
+
+    const I = this.ICONS();
+    const navOrder = ['home', 'search', 'add', 'friends', 'lists'];
+    const navItems = [
+      { label: 'Home', icon: I.home },
+      { label: 'Search', icon: I.search },
+      { label: 'Add', icon: I.plus },
+      { label: 'Activity', icon: I.activity },
+      { label: 'Profile', icon: I.profile }
+    ];
+
+    const cur = this.show(S.showT);
+    const curPfx = this.pfx(S.showT);
+    const gotShow = S.showT === 'Game of Thrones';
+    const pq = (S.peopleQuery || '').trim().toLowerCase();
+    const mkPerson = c => ({
+      name: c[0], role: c[1],
+      open: c[2] ? () => this.go('person', { personId: c[2] }) : () => this.showToast(c[0] + ' \u2014 profile coming soon')
+    });
+    const matchP = c => !pq || c[0].toLowerCase().includes(pq) || (c[1] || '').toLowerCase().includes(pq);
+    const peopleGroups = [
+      { label: 'Cast', rows: cur.cast.filter(matchP).map(mkPerson) },
+      { label: 'Crew', rows: cur.crew.filter(matchP).map(mkPerson) }
+    ].filter(g => g.rows.length > 0);
+    const openShow = (id, title) => () => this.go('show', { showT: title, seasonN: 1, selNode: null });
+    const openByTitle = title => () => this.go('show', { showT: title, seasonN: 1, selNode: null });
+    const q = S.query.trim().toLowerCase();
+    const showResults = this.SHOWS.filter(s => !q || s.title.toLowerCase().includes(q)).map(s => ({ title: s.title, meta: s.meta, years: s.years, open: openShow(s.id, s.title) }));
+    const peopleResults = this.PEOPLE.filter(p => !q || p.name.toLowerCase().includes(q) || p.role.toLowerCase().includes(q)).map(p => {
+      const parts = p.role.split(' \u00b7 ');
+      return { name: p.name, role: p.role, shortRole: parts[1] || parts[0], open: () => this.go('person', { personId: p.id }) };
+    });
+    const nResults = S.seg === 'Shows' ? showResults.length : peopleResults.length;
+
+    const bingeLive = this.BINGE.concat(S.bingeAdded).filter(b => !S.bingeDone[b.key]);
+    const bq = S.bingeQuery.trim().toLowerCase();
+    const bingeResults = !bq ? [] : this.SHOWS.filter(s => s.title.toLowerCase().includes(bq)).map(s => {
+      const info = this.show(s.title);
+      const airing = info.status === 'Airing';
+      const already = this.WATCHLIST.includes(s.title);
+      return {
+        title: s.title,
+        meta: (info.years ? info.years + ' \u00b7 ' : '') + info.status,
+        ended: !airing,
+        canTrack: airing,
+        note: info.status === 'Miniseries' ? 'Miniseries \u2014 already complete' : 'No longer airing \u2014 nothing left to wait for',
+        track: () => {
+          if (!already) this.WATCHLIST.push(s.title);
+          this.setState(st => ({
+            bingeSearchOpen: false, bingeQuery: '',
+            bingeAdded: st.bingeAdded.some(b => b.show === s.title) ? st.bingeAdded
+              : [...st.bingeAdded, { key: 'trk_' + s.id, show: s.title, title: s.title, body: 'Tracking \u2014 we\u2019ll tell you the day it wraps.' }]
+          }));
+          this.addActivity('You added ' + s.title + ' to Binge-ready');
+          this.showToast(already ? s.title + ' is already in your watchlist' : s.title + ' added to your watchlist');
+        }
+      };
+    });
+
+    const aq = S.alertQuery.trim().toLowerCase();
+    const alertResults = !aq ? [] : this.SHOWS.filter(s => s.title.toLowerCase().includes(aq)).map(s => {
+      const id = 'trk_' + s.id;
+      const tracked = S.alertItems.some(a => a.id === id) || !!S.toggles[id];
+      return {
+        title: s.title, meta: s.meta, tracked, label: tracked ? 'Tracking' : 'Track',
+        track: () => this.setState(st => {
+          if (st.alertItems.some(a => a.id === id)) return {};
+          this.showToast('Tracking ' + s.title + ' for bingeability');
+          return {
+            alertItems: [...st.alertItems, { id, title: s.title, sub: 'Alert me when the season finishes airing' }],
+            toggles: { ...st.toggles, [id]: true }, alertQuery: ''
+          };
+        })
+      };
+    });
+
+    const seasonRows = cur.seasons.map((count, i) => {
+      const sn = i + 1, avg = this.seasonAvg(sn, curPfx);
+      const w = Object.keys(S.watched).filter(k => k.indexOf(curPfx + sn + '-') === 0 && S.watched[k]).length;
+      return {
+        label: 'Season ' + sn,
+        sub: count + ' episodes' + (w ? ' \u00b7 ' + w + ' watched' : ''),
+        avg: avg || 0,
+        avgTxt: avg ? (Math.round(avg * 10) / 10).toFixed(1) : '\u2013',
+        open: () => this.go('season', { seasonN: sn })
+      };
+    });
+
+    const sn = S.seasonN || 1;
+    const snAvg = this.seasonAvg(sn, curPfx);
+    const snCount = cur.seasons[sn - 1] || 10;
+    const snWatched = Object.keys(S.watched).filter(k => k.indexOf(curPfx + sn + '-') === 0 && S.watched[k]).length;
+    const seasonBins = [0,0,0,0,0,0,0,0,0,0];
+    Object.keys(S.ratings).forEach(k => {
+      if (k.indexOf(curPfx + sn + '-') !== 0) return;
+      if (curPfx === '' && k.indexOf('|') >= 0) return;
+      const v = S.ratings[k].s;
+      if (v >= 1 && v <= 10) seasonBins[v - 1]++;
+    });
+
+    const svc = this.SERVICES[cur.title] || ['Not streaming', ''];
+
+    const upNextRows = this.WATCHING.map(w => {
+      const sh = this.show(w.title);
+      const lw = this.lastWatchedFor(w.title);
+      let nx = null;
+      if (!lw) nx = [1, 1];
+      else if (lw[1] < (sh.seasons[lw[0] - 1] || 0)) nx = [lw[0], lw[1] + 1];
+      else if (lw[0] < sh.seasons.length) nx = [lw[0] + 1, 1];
+      if (!nx) return null;
+      const key = this.pfx(w.title) + nx[0] + '-' + nx[1];
+      return {
+        title: w.title, code: this.code(nx[0], nx[1]),
+        ep: this.epTitle(nx[0], nx[1], w.title === 'Game of Thrones'),
+        air: this.AIR[w.title] || 'Available now',
+        left: ((sh.eps) - Object.keys(S.watched).filter(k => (this.pfx(w.title) ? k.indexOf(this.pfx(w.title)) === 0 : k.indexOf('|') < 0) && S.watched[k]).length) + ' episodes left',
+        open: () => this.go('show', { showT: w.title, seasonN: nx[0], selNode: null }),
+        mark: () => {
+          this.setState(s => ({ watched: { ...s.watched, [key]: 1 } }));
+          this.showToast(w.title + ' \u2014 ' + this.code(nx[0], nx[1]) + ' marked watched');
+        }
+      };
+    }).filter(Boolean);
+
+    const diaryGroups = [];
+    this.DIARY.forEach(d => {
+      let g = diaryGroups.find(x => x.label === d.month);
+      if (!g) { g = { label: d.month, rows: [] }; diaryGroups.push(g); }
+      g.rows.push({
+        day: d.day, mon: d.mon.toUpperCase(), title: d.title, code: d.code, ep: d.ep,
+        stars: d.stars, starsTxt: d.stars.toFixed(1),
+        open: () => this.go('show', { showT: d.title, seasonN: 1, selNode: null })
+      });
+    });
+
+    const statTotals = (() => {
+      const eps = Object.keys(S.watched).filter(k => S.watched[k]).length;
+      const rvals = Object.keys(S.ratings).map(k => S.ratings[k].s).filter(n => n >= 1 && n <= 10);
+      const bins = [0,0,0,0,0,0,0,0,0,0];
+      rvals.forEach(v => bins[v - 1]++);
+      const avg = rvals.length ? rvals.reduce((a, b) => a + b, 0) / rvals.length / 2 : 0;
+      const titles = this.WATCHING.map(w => w.title).concat(this.WATCHED.map(w => w.title));
+      const gc = {};
+      titles.forEach(t => { const g = this.show(t).genre || 'Other'; gc[g] = (gc[g] || 0) + 1; });
+      const top = Object.keys(gc).sort((a, b) => gc[b] - gc[a]).slice(0, 4);
+      const maxG = top.length ? gc[top[0]] : 1;
+      return {
+        eps, hours: Math.round(eps * 52 / 60), shows: titles.length,
+        rated: rvals.length, bins, avg,
+        avgTxt: rvals.length ? (Math.round(avg * 10) / 10).toFixed(1) : '\u2013',
+        genres: top.map(g => ({ name: g, count: gc[g] + (gc[g] === 1 ? ' show' : ' shows'), pct: Math.round(gc[g] / maxG * 100) + '%' }))
+      };
+    })();
+
+    const epRows = [];
+    for (let e = 1; e <= snCount; e++) {
+      const key = curPfx + sn + '-' + e, w = !!S.watched[key], r = S.ratings[key];
+      epRows.push({
+        code: this.code(sn, e), title: this.epTitle(sn, e, gotShow), watched: w,
+        titleColor: w ? 'var(--text-muted)' : 'var(--text-body)',
+        toggle: () => this.setState(s => ({ watched: { ...s.watched, [key]: !s.watched[key] } })),
+        hasRating: !!r,
+        rated: r ? r.s / 2 : 0,
+        ratedTxt: r ? (r.s / 2).toFixed(1) : '',
+        rateLabel: r ? 'Edit' : 'Rate',
+        openRate: () => this.setState({ rateKey: key, rateS: r ? r.s : 0, rateText: r && r.review ? r.review : '' })
+      });
+    }
+
+    const rk = S.rateKey ? S.rateKey.split('|').pop().split('-').map(Number) : null;
+
+    const lastEp1 = last && last[0] === 1 ? last[1] : (last && last[0] > 1 ? 10 : 0);
+    const recapParas = this.RECAPS.filter(r => r.from <= lastEp1).map((r, i) => {
+      const hidden = (this.props.spoilerGuard ?? false) && !S.revealed[i];
+      return {
+        range: 'Episodes ' + r.from + '\u2013' + Math.min(r.to, lastEp1), text: r.text,
+        blur: hidden ? 'blur(6px)' : 'none', guarded: hidden,
+        reveal: () => this.setState(s => ({ revealed: { ...s.revealed, [i]: true } }))
+      };
+    });
+
+    const metNodes = this.NODES.filter(n => n.met <= lastEp1);
+    const metIds = {}; metNodes.forEach(n => { metIds[n.id] = n; });
+    const graphEdges = this.EDGES.filter(e => metIds[e[0]] && metIds[e[1]] && (e[3] || 1) <= lastEp1).map(e => {
+      const a = metIds[e[0]], b = metIds[e[1]];
+      return { x1: a.x, y1: a.y, x2: b.x, y2: b.y, lxPct: ((a.x + b.x) / 2 / 360 * 100) + '%', lyPct: ((a.y + b.y) / 2 / 470 * 100) + '%', stroke: 'var(--ink-line)', label: e[2] };
+    });
+    const graphNodes = metNodes.map(n => ({
+      leftPct: (n.x / 360 * 100) + '%', topPct: (n.y / 470 * 100) + '%',
+      initials: n.name.slice(0, 2).toUpperCase(), name: n.name, fill: this.HOUSES[n.h],
+      stroke: S.selNode === n.id ? 'var(--text-body)' : 'transparent',
+      pick: () => this.setState({ selNode: n.id })
+    }));
+    const sel = metIds[S.selNode] || metNodes[0];
+    const selConns = sel ? this.EDGES.filter(e => (e[0] === sel.id || e[1] === sel.id) && metIds[e[0]] && metIds[e[1]] && (e[3] || 1) <= lastEp1).map(e => {
+      const other = metIds[e[0] === sel.id ? e[1] : e[0]];
+      return { who: other.full, how: e[2] };
+    }) : [];
+
+    const person = this.PEOPLE.find(p => p.id === S.personId) || this.PEOPLE[0];
+
+    const nPicked = Object.keys(S.picked).filter(k => S.picked[k]).length;
+
+    const addQ = (S.pickQuery || '').trim().toLowerCase();
+    const addResults = !addQ ? [] : this.ONBOARD_PICKS.filter(t => t.toLowerCase().includes(addQ)).map(t => {
+      const on = !!S.picked[t];
+      return {
+        title: t, meta: (this.PICK_YEARS[t] || '') + (this.NETWORKS[t] ? ' \u00b7 ' + this.NETWORKS[t] : ''),
+        desc: this.DESCS[t] || 'No description yet.',
+        bg: on ? 'var(--signal-soft)' : 'var(--bg-app)',
+        ring: on ? 'rgba(255,92,56,.35)' : 'var(--border-hairline)',
+        btnBg: on ? 'var(--signal)' : 'transparent',
+        btnBorder: on ? 'var(--signal)' : 'var(--border-hairline)',
+        btnColor: on ? '#0C1014' : 'var(--text-muted)',
+        btnGlyph: on ? '\u2713' : '\u203a',
+        toggle: () => {
+          this.setState({ addSel: t, addMode: 'Watching', addSn: 1, addEp: 1, addDate: '', addLists: {} });
+        }
+      };
+    });
+
+    const openList = S.listKey === 'watchlist'
+      ? { name: 'Watchlist', note: 'Everything you mean to get to. Add from any show page.', shows: this.WATCHLIST }
+      : (this.LISTS[S.listKey] || this.LISTS[0]);
+
+    const aSel = S.addSel, selShow = aSel ? this.show(aSel) : null;
+    const selSnCount = selShow ? (selShow.seasons[S.addSn - 1] || 1) : 1;
+    const pad = n => (n < 10 ? '0' : '') + n;
+    const fmtDate = d => {
+      if (!d) return 'no date';
+      const parts = d.split('-');
+      const mo = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][Number(parts[1]) - 1];
+      return Number(parts[2]) + ' ' + mo + ' ' + parts[0];
+    };
+    const today = new Date();
+    const iso = dt => dt.getFullYear() + '-' + pad(dt.getMonth() + 1) + '-' + pad(dt.getDate());
+    const dayAgo = n => { const d = new Date(today); d.setDate(d.getDate() - n); return iso(d); };
+    const shortcuts = [['Today', iso(today)], ['Yesterday', dayAgo(1)], ['Last week', dayAgo(7)]];
+
+    const saveAdd = () => {
+      const t = aSel;
+      if (!t) return;
+      if (S.addMode === 'Watching') {
+        const seed = {};
+        for (let s = 1; s <= S.addSn; s++) {
+          const lastEp = s < S.addSn ? selShow.seasons[s - 1] : S.addEp;
+          for (let e = 1; e <= lastEp; e++) seed[t + '|' + s + '-' + e] = 1;
+        }
+        if (!this.WATCHING.some(w => w.title === t)) this.WATCHING.push({ title: t, sn: S.addSn, ep: S.addEp });
+        this.setState(s => ({ watched: { ...s.watched, ...seed }, picked: { ...s.picked, [t]: true }, addSel: null, addOpen: false, pickQuery: '' }));
+        this.addActivity('You started watching ' + t);
+        this.showToast(t + ' \u2014 you\u2019re on ' + this.code(S.addSn, S.addEp));
+      } else if (S.addMode === 'Watched') {
+        const seed = {};
+        selShow.seasons.forEach((c, i) => { for (let e = 1; e <= c; e++) seed[t + '|' + (i + 1) + '-' + e] = 1; });
+        if (!this.WATCHED.some(w => w.title === t)) this.WATCHED.unshift({ title: t, rating: 0, when: fmtDate(S.addDate) });
+        this.setState(s => ({ watched: { ...s.watched, ...seed }, picked: { ...s.picked, [t]: true }, addSel: null, addOpen: false, pickQuery: '', myShowsTab: 'Watched' }));
+        this.showToast(t + ' logged as watched');
+      } else {
+        const on = Object.keys(S.addLists).filter(k => S.addLists[k]);
+        on.forEach(k => {
+          if (k === 'watchlist') { if (!this.WATCHLIST.includes(t)) this.WATCHLIST.push(t); }
+          else { const l = this.LISTS[Number(k)]; if (l && !l.shows.includes(t)) l.shows.push(t); }
+        });
+        this.setState({ addSel: null, addOpen: false, pickQuery: '' });
+        if (on.length) this.addActivity('You added ' + t + ' to ' + on.length + (on.length === 1 ? ' list' : ' lists'));
+        this.showToast(on.length ? t + ' added to ' + on.length + (on.length === 1 ? ' list' : ' lists') : t + ' \u2014 pick a list first');
+      }
+    };
+
+    const seg = (segments, value, onPick) => {
+      const n = segments.length, i = Math.max(0, segments.indexOf(value));
+      return {
+        opts: segments.map(s => ({
+          label: s, color: s === value ? 'var(--text-body)' : 'var(--text-muted)',
+          pick: () => onPick(s)
+        })),
+        pill: {
+          position: 'absolute', top: 3, left: 3, height: 36, borderRadius: 11,
+          width: 'calc((100% - ' + (6 + (n - 1) * 2) + 'px) / ' + n + ')',
+          background: 'var(--surface-pressed)',
+          transform: 'translateX(calc(' + (i * 100) + '% + ' + (i * 2) + 'px))',
+          transition: 'transform var(--dur-med) var(--ease-spring)'
+        }
+      };
+    };
+    const searchSeg = seg(['Shows', 'Cast & crew'], S.seg, v => this.setState({ seg: v }));
+    const myShowsSeg = seg(['Watching', 'Watched'], S.myShowsTab, v => this.setState({ myShowsTab: v }));
+    const friendsSeg = seg(['Activity', 'Friends'], S.friendsTab, v => this.setState({ friendsTab: v }));
+    const addModeSeg = seg(['Watching', 'Watched', 'Add to list'], S.addMode, v => this.setState({ addMode: v }));
+
+    const mkToggle = (id, title, sub) => ({
+      title, sub, on: !!S.toggles[id],
+      flip: () => this.setState(s => ({ toggles: { ...s.toggles, [id]: !s.toggles[id] } }))
+    });
+
+    return {
+      n12: 12, n13: 13, n15: 15, n20: 20, n96: 96, n112: 112,
+      hasPicked: nPicked > 0, pickedCount: nPicked + ' added',
+      pickedShows: Object.keys(S.picked).filter(k => S.picked[k]).map(t => ({ title: t, open: openByTitle(t) })), n28: 28, n36: 36, n38: 38, n40: 40, n44: 44, n46: 46, n52: 52, n66: 66, n72: 72, n78: 78, n84: 84, n118: 118, n430: 430, r055: 0.55,
+      padLeft0: { padding: '0 4px', marginLeft: -4, color: 'var(--signal)' },
+      posterProps: { style: { width: '100%', height: 'auto', aspectRatio: '2 / 3', flexShrink: 1 } },
+      vHome: v === 'home', vSearch: v === 'search', vShow: v === 'show', vSeason: v === 'season',
+      vRecap: v === 'recap', vGraph: v === 'graph', vPerson: v === 'person', vFriends: v === 'friends', vAlerts: v === 'alerts',
+      vLists: v === 'lists', vPeople: v === 'people',
+      vUpNext: v === 'upnext', vDiary: v === 'diary', vStats: v === 'stats',
+      openUpNext: () => this.go('upnext'), openDiary: () => this.go('diary'), openStats: () => this.go('stats'),
+      quickLinks: [
+        { label: 'Up next', sub: upNextRows.length + ' episodes', go: () => this.go('upnext') },
+        { label: 'Diary', sub: this.DIARY.length + ' entries', go: () => this.go('diary') },
+        { label: 'Stats', sub: statTotals.eps + ' eps', go: () => this.go('stats') }
+      ],
+      upNextRows, upNextCount: upNextRows.length + ' waiting',
+      diaryGroups, statTotals,
+      statCards: [
+        { value: String(statTotals.eps), label: 'Episodes' },
+        { value: statTotals.hours + 'h', label: 'Watch time' },
+        { value: String(statTotals.shows), label: 'Shows' },
+        { value: statTotals.avgTxt, label: 'Avg rating' }
+      ],
+      statBins: statTotals.bins, statAvg: Math.round(statTotals.avg * 10) / 10,
+      statRatedLabel: statTotals.rated + ' episodes rated',
+      genreRows: statTotals.genres,
+      reviewRows: this.REVIEWS.map(r => ({
+        who: r.who, meta: r.show + ' \u00b7 ' + r.code, stars: r.stars,
+        starsTxt: r.stars.toFixed(1), text: r.text, when: r.when,
+        open: () => this.go('show', { showT: r.show, seasonN: 1, selNode: null })
+      })),
+      svcName: svc[0], svcLeaving: svc[1], svcLeavingOn: !!svc[1],
+      rewatchCount: S.rewatch[cur.title] || 0,
+      rewatchOn: !!S.rewatch[cur.title],
+      rewatchLabel: (S.rewatch[cur.title] || 0) > 0 ? 'Rewatch #' + ((S.rewatch[cur.title] || 0) + 1) : 'Start a rewatch',
+      rewatchBadge: 'Rewatched ' + (S.rewatch[cur.title] || 0) + '\u00d7',
+      startRewatch: () => {
+        const t = cur.title;
+        this.setState(s => ({ rewatch: { ...s.rewatch, [t]: (s.rewatch[t] || 0) + 1 } }));
+        this.showToast('Rewatch logged \u2014 your progress is kept', () => {
+          this.setState(s => ({ rewatch: { ...s.rewatch, [t]: Math.max(0, (s.rewatch[t] || 0) - 1) } }));
+        });
+      },
+      seasonBins, seasonHasBins: seasonBins.some(b => b > 0),
+      isLight: this.isLight(),
+      themeLabel: this.isLight() ? 'Switch to dark mode' : 'Switch to light mode',
+      themeBtn: { color: 'var(--text-muted)', flexShrink: 0 },
+      themeIcon: this.isLight()
+        ? this.icon([['c', 12, 12, 4], ['p', 'M12 2v2'], ['p', 'M12 20v2'], ['p', 'm4.9 4.9 1.4 1.4'], ['p', 'm17.7 17.7 1.4 1.4'], ['p', 'M2 12h2'], ['p', 'M20 12h2'], ['p', 'm6.3 17.7-1.4 1.4'], ['p', 'm19.1 4.9-1.4 1.4']])
+        : this.icon([['p', 'M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z']]),
+      toggleTheme: () => this.setState({ themeOverride: !this.isLight() }),
+      isGrid: S.resultView === 'grid', isList: S.resultView === 'list',
+      setGrid: () => this.setState({ resultView: 'grid' }), setList: () => this.setState({ resultView: 'list' }),
+      gridIcon: this.icon([['p', 'M3 4a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z'], ['p', 'M14 4a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1h-5a1 1 0 0 1-1-1z'], ['p', 'M3 15a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z'], ['p', 'M14 15a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1h-5a1 1 0 0 1-1-1z']]),
+      listIcon: this.icon([['p', 'M8 6h13'], ['p', 'M8 12h13'], ['p', 'M8 18h13'], ['p', 'M3 6h.01'], ['p', 'M3 12h.01'], ['p', 'M3 18h.01']]),
+      gridBtnStyle: { width: 34, height: 34, borderRadius: 10, background: S.resultView === 'grid' ? 'var(--surface-pressed)' : 'transparent', color: S.resultView === 'grid' ? 'var(--text-body)' : 'var(--text-faint)' },
+      listBtnStyle: { width: 34, height: 34, borderRadius: 10, background: S.resultView === 'list' ? 'var(--surface-pressed)' : 'transparent', color: S.resultView === 'list' ? 'var(--text-body)' : 'var(--text-faint)' },
+      resultCount: nResults + (nResults === 1 ? ' result' : ' results'),
+      myShowsTabs: ['Watching', 'Watched'],
+      myShowsTab: S.myShowsTab,
+      myShowsCount: (S.myShowsTab === 'Watching' ? this.WATCHING.length + 1 : this.WATCHED.length) + ' shows',
+      myShowsEmpty: false,
+      myShowsEmptyText: 'Nothing here yet.',
+      myShows: S.myShowsTab === 'Watching'
+        ? [{
+            title: 'Game of Thrones', overline: next ? 'Up next \u00b7 ' + this.code(next[0], next[1]) : 'All caught up',
+            sub: gotWatched + ' of 73 episodes watched', inProgress: true, pct: Math.round(gotWatched / 73 * 100),
+            open: openByTitle('Game of Thrones')
+          }].concat(this.WATCHING.map(w => {
+            const sh = this.show(w.title), tot = sh.eps, p = w.title + '|';
+            const done = Object.keys(S.watched).filter(k => k.indexOf(p) === 0 && S.watched[k]).length;
+            let ns = 1, ne = done + 1;
+            for (let i = 0; i < sh.seasons.length; i++) {
+              if (ne <= sh.seasons[i]) { ns = i + 1; break; }
+              ne -= sh.seasons[i]; ns = i + 2;
+            }
+            const caught = done >= tot;
+            return {
+              title: w.title, overline: caught ? 'All caught up' : 'Up next \u00b7 ' + this.code(ns, ne),
+              sub: done + ' of ' + tot + ' episodes watched', inProgress: true,
+              pct: Math.round(done / tot * 100), open: openByTitle(w.title)
+            };
+          }))
+        : this.WATCHED.map(w => {
+            const sh = this.show(w.title);
+            return {
+              title: w.title, overline: 'Finished \u00b7 ' + w.when,
+              sub: 'All ' + sh.eps + ' episodes \u00b7 you rated it ' + w.rating.toFixed(1) + ' \u2605',
+              inProgress: false, pct: 100, open: openByTitle(w.title)
+            };
+          }),
+      setMyShowsTab: val => this.setState({ myShowsTab: val }),
+      watchlist: this.WATCHLIST.map(t => ({ title: t })),
+      watchlistCount: this.WATCHLIST.length + ' shows',
+      openWatchlist: () => this.go('listDetail', { listKey: 'watchlist' }),
+      toastNewList: () => this.showToast('New list \u2014 coming soon'),
+      customLists: this.LISTS.map((l, i) => ({
+        name: l.name, note: l.note, count: l.shows.length + ' shows', shows: l.shows,
+        shared: !!(l.with && l.with.length),
+        sharedWith: (l.with || []).map(n => ({ name: n })),
+        sharedLabel: l.with ? 'Shared with ' + l.with.join(' and ') : '',
+        open: () => this.go('listDetail', { listKey: i })
+      })),
+      vListDetail: v === 'listDetail',
+      listName: openList.name, listNote: openList.note,
+      listShared: !!(openList.with && openList.with.length),
+      listSharedWith: (openList.with || []).map(n => ({ name: n })),
+      listSharedLabel: openList.with ? 'Shared with ' + openList.with.join(' and ') : '',
+      inviteToList: () => this.showToast('Invite link copied'),
+      marginLeftAuto: { marginLeft: 'auto' },
+      listCount: openList.shows.length + ' shows',
+      listShows: openList.shows.map(t => {
+        const known = this.SHOWS.find(s => s.title === t);
+        return {
+          title: t, meta: known ? known.years : (this.PICK_YEARS[t] || 'On your list'),
+          open: openByTitle(t)
+        };
+      }),
+      alertQuery: S.alertQuery, setAlertQuery: val => this.setState({ alertQuery: val }),
+      alertSearching: !!S.alertQuery.trim(), alertResults,
+      navItems, navIndex: S.addOpen ? 2 : Math.max(0, navOrder.indexOf(S.tab)),
+      navBtns: navItems.map((it, i) => {
+        const act = (S.addOpen ? 2 : Math.max(0, navOrder.indexOf(S.tab))) === i;
+        return {
+          icon: it.icon, color: i === 2 ? 'var(--signal)' : act ? 'var(--text-body)' : 'var(--text-faint)',
+          go: () => i === 2 ? this.plusTap() : this.tab(navOrder[i])
+        };
+      }),
+      navPill: {
+        position: 'absolute', top: 8, left: 8, width: 52, height: 48, borderRadius: 12,
+        background: 'var(--surface-pressed)',
+        transform: 'translateX(' + (S.addOpen ? 2 : Math.max(0, navOrder.indexOf(S.tab))) * 56 + 'px)',
+        transition: 'transform var(--dur-med) var(--ease-spring)'
+      },
+      segOpts: searchSeg.opts, segPill: searchSeg.pill,
+      myShowsOpts: myShowsSeg.opts, myShowsPill: myShowsSeg.pill,
+      friendsOpts: friendsSeg.opts, friendsPill: friendsSeg.pill,
+      showActivityTab: S.friendsTab === 'Activity', showFriendsTab: S.friendsTab === 'Friends',
+      activityRows: S.activityLog.concat(this.ACTIVITY),
+      addModeOpts: addModeSeg.opts, addModePill: addModeSeg.pill,
+      navGo: i => i === 2 ? this.plusTap() : this.tab(navOrder[i]),
+      askLogOpen: !!S.askLog, askLogTitle: S.askLog || '',
+      confirmLog: () => this.setState({ askLog: null, addOpen: true, pickQuery: '', addSel: S.askLog, addMode: 'Watching', addSn: 1, addEp: 1, addDate: '', addLists: {} }),
+      declineLog: () => this.setState({ askLog: null, addOpen: true, pickQuery: '', addSel: null }),
+      addOpen: S.addOpen, closeAdd: () => this.setState({ addOpen: false, pickQuery: '', addSel: null }),
+      closeBtn: { color: 'var(--text-muted)', width: 36, height: 36, flexShrink: 0 },
+      closeIcon: this.icon([['p', 'M18 6 6 18'], ['p', 'm6 6 12 12']]),
+      n54: 54,
+      addIdle: !addQ, addEmpty: !!addQ && addResults.length === 0, addResults,
+      addNoSel: !aSel, addHasSel: !!aSel,
+      selTitle: aSel || '', selMeta: selShow ? [selShow.years, selShow.network, selShow.seasons.length + (selShow.seasons.length === 1 ? ' season' : ' seasons'), selShow.eps + ' episodes'].filter(Boolean).join(' \u00b7 ') : '',
+      clearSel: () => this.setState({ addSel: null }),
+      addModes: ['Watching', 'Watched', 'Add to list'],
+      addMode: S.addMode, setAddMode: val => this.setState({ addMode: val }),
+      modeWatching: S.addMode === 'Watching', modeWatched: S.addMode === 'Watched', modeList: S.addMode === 'Add to list',
+      selSeasons: selShow ? selShow.seasons.map((c, i) => ({
+        label: 'S' + (i + 1), on: S.addSn >= i + 1, op: S.addSn === i + 1 ? 1 : (S.addSn > i + 1 ? 0.5 : 1),
+        pick: () => this.setState({ addSn: i + 1, addEp: 1 })
+      })) : [],
+      selEpisodes: Array.from({ length: selSnCount }, (_, i) => ({
+        label: String(i + 1), on: S.addEp >= i + 1, op: S.addEp > i + 1 ? 0.5 : 1, pick: () => this.setState({ addEp: i + 1 })
+      })),
+      watchingSummary: aSel ? 'We\u2019ll mark everything up to ' + this.code(S.addSn, S.addEp) + ' as watched.' : '',
+      watchedSummary: selShow ? 'All ' + selShow.eps + ' episodes will be marked watched.' : '',
+      addDate: S.addDate, setAddDate: val => this.setState({ addDate: val }),
+      dateShortcuts: shortcuts.map(([label, v]) => ({ label, on: S.addDate === v, pick: () => this.setState({ addDate: v }) })),
+      addListRows: [{ key: 'watchlist', name: 'Watchlist', count: this.WATCHLIST.length + ' shows' }]
+        .concat(this.LISTS.map((l, i) => ({ key: String(i), name: l.name, count: l.shows.length + ' shows' })))
+        .map(r => ({
+          name: r.name, count: r.count, on: !!S.addLists[r.key],
+          ring: S.addLists[r.key] ? 'var(--signal)' : 'var(--border-hairline)',
+          toggle: () => this.setState(s => ({ addLists: { ...s.addLists, [r.key]: !s.addLists[r.key] } }))
+        })),
+      saveAdd,
+      saveAddLabel: S.addMode === 'Watching' ? 'Save progress' : (S.addMode === 'Watched' ? 'Log as watched' : 'Add to lists'),
+      bellIcon: I.alerts,
+      bellBtn: { background: 'transparent', border: 'none', color: 'var(--text-body)', width: 32, height: 32 },
+      openAlerts: () => this.go('alerts'),
+      meName: S.me.name, meHandle: S.me.handle, meBio: S.me.bio,
+      meStats: [
+        { value: nPicked + 6, label: 'Shows' },
+        { value: Object.keys(S.watched).filter(k => S.watched[k]).length, label: 'Episodes' },
+        { value: Object.keys(S.ratings).length, label: 'Ratings' }
+      ],
+      openEdit: () => this.setState(s => ({ editOpen: true, eName: s.me.name, eHandle: s.me.handle, eBio: s.me.bio })),
+      closeEdit: () => this.setState({ editOpen: false }),
+      editOpen: S.editOpen, eName: S.eName, eHandle: S.eHandle, eBio: S.eBio, n64: 64,
+      setEName: val => this.setState({ eName: val }),
+      setEHandle: val => this.setState({ eHandle: val }),
+      setEBio: val => this.setState({ eBio: val }),
+      toastPhoto: () => this.showToast('Photo upload coming soon'),
+      saveProfile: () => { this.setState(s => ({ me: { name: s.eName, handle: s.eHandle, bio: s.eBio }, editOpen: false })); this.showToast('Profile updated'); },
+      back: () => this.setState(s => { const st = [...s.stack]; return { view: st.pop() || s.tab, stack: st }; }),
+      openGot: openByTitle('Game of Thrones'), openRecap: () => this.go('recap'), openGraph: () => this.go('graph'),
+      showTitle: cur.title, showStatus: cur.status,
+      showEpCount: cur.eps + ' episodes',
+      showMetaLine: [cur.years, cur.network, cur.genre, cur.seasons.length + (cur.seasons.length === 1 ? ' season' : ' seasons')].filter(Boolean).join(' \u00b7 '),
+      showSynopsis: cur.synopsis,
+      showBannerOn: cur.status === 'Ended' || cur.status === 'Miniseries',
+      showBanner: 'This show has ended \u2014 all ' + cur.eps + ' episodes are binge-ready.',
+      gotShow, notGot: !gotShow,
+      hasCast: cur.cast.length > 0,
+      openPeople: () => this.go('people', { peopleQuery: '' }),
+      seeAllLabel: 'See all ' + (cur.cast.length + cur.crew.length),
+      peopleSub: cur.title + ' \u00b7 ' + cur.cast.length + ' cast \u00b7 ' + cur.crew.length + ' crew',
+      peopleQuery: S.peopleQuery, setPeopleQuery: v => this.setState({ peopleQuery: v }),
+      peopleGroups: peopleGroups,
+      peopleEmpty: peopleGroups.length === 0,
+      castRows: cur.cast.slice(0, 4).map(c => ({
+        name: c[0], role: c[1],
+        open: c[2] ? () => this.go('person', { personId: c[2] }) : () => this.showToast(c[0] + ' \u2014 profile coming soon')
+      })),
+      crewRows: cur.crew.slice(0, 3).map(c => ({
+        name: c[0], role: c[1],
+        open: c[2] ? () => this.go('person', { personId: c[2] }) : () => this.showToast(c[0] + ' \u2014 profile coming soon')
+      })),
+      inWatchlist: !gotShow && this.WATCHLIST.includes(cur.title),
+      canAddWatchlist: !gotShow && !this.WATCHLIST.includes(cur.title),
+      watchlistTap: () => {
+        this.WATCHLIST.push(cur.title);
+        this.forceUpdate();
+        this.showToast(cur.title + ' added to your watchlist', () => {
+          const i = this.WATCHLIST.indexOf(cur.title);
+          if (i >= 0) this.WATCHLIST.splice(i, 1);
+          this.forceUpdate();
+        });
+      },
+      goFriendsTab: () => this.tab('friends'),
+      nextEpCode: next ? this.code(next[0], next[1]) : '',
+      nextEpTitle: next ? this.epTitle(next[0], next[1]) : 'All caught up!',
+      progVal: Math.round(s1Watched / 10 * 100),
+      progLabel: s1Watched + ' of 10 \u00b7 Season 1',
+      bingeCards: bingeLive.map(b => ({ title: b.title, body: b.body })),
+      bingeAddIcon: this.icon([['p', 'M12 5v14'], ['p', 'M5 12h14']]),
+      bingeAddBtn: { color: 'var(--text-muted)', width: 32, height: 32, flexShrink: 0 },
+      bingeEmpty: bingeLive.length === 0,
+      bingeSearchOpen: S.bingeSearchOpen,
+      openBingeSearch: () => this.setState({ bingeSearchOpen: true, bingeQuery: '' }),
+      closeBingeSearch: () => this.setState({ bingeSearchOpen: false, bingeQuery: '' }),
+      bingeQuery: S.bingeQuery, setBingeQuery: val => this.setState({ bingeQuery: val }),
+      bingeResults, bingeNoResults: !!bq && bingeResults.length === 0,
+      friendChips: this.FRIENDS.map(f => ({ full: f.full, name: f.name, show: f.show })),
+      query: S.query, setQueryV: val => this.setState({ query: val }),
+      segments: ['Shows', 'Cast & crew'], segValue: S.seg, setSeg: val => this.setState({ seg: val }),
+      segShows: S.seg === 'Shows', segPeople: S.seg === 'Cast & crew',
+      showResults, peopleResults, seasonRows,
+      seasonTitle: 'Season ' + sn,
+      seasonAvg: snAvg ? Math.round(snAvg * 10) / 10 : 0,
+      seasonAvgTxt: snAvg ? (Math.round(snAvg * 10) / 10).toFixed(1) : '\u2013',
+      seasonAvgSub: snAvg ? 'Your average across ' + Object.keys(S.ratings).filter(k => k.indexOf(curPfx + sn + '-') === 0).length + ' rated episodes' : 'Rate episodes to build your average',
+      seasonWatchedLabel: snWatched + ' of ' + snCount + ' watched' + (gotShow ? ' \u00b7 Last: ' + lastLabel : ''),
+      epRows,
+      rateOpen: !!S.rateKey,
+      rateCode: rk ? this.code(rk[0], rk[1]) : '',
+      rateTitle: rk ? this.epTitle(rk[0], rk[1], gotShow) : '',
+      rateVal: S.rateS / 2,
+      setRateVal: val => this.setState({ rateS: Math.round(val * 2) }),
+      rateValTxt: S.rateS ? (S.rateS / 2).toFixed(1) : '\u2013',
+      rateText: S.rateText, setRateText: e => this.setState({ rateText: e.target.value }),
+      closeRate: () => this.setState({ rateKey: null }),
+      stop: e => e.stopPropagation(),
+      saveRate: () => this.setState(s => {
+        const r = { ...s.ratings };
+        if (s.rateS) r[s.rateKey] = { s: s.rateS, review: s.rateText };
+        this.showToast('Rating saved \u2014 season average updated');
+        return { ratings: r, rateKey: null, watched: { ...s.watched, [s.rateKey]: 1 } };
+      }),
+      clearRate: () => this.setState(s => {
+        const r = { ...s.ratings }; delete r[s.rateKey];
+        return { ratings: r, rateKey: null };
+      }),
+      recapHeader: 'Through ' + (last ? this.code(last[0], last[1]) : 'nothing yet'), recapParas,
+      graphSub: metNodes.length + ' characters met through ' + (last ? this.code(last[0], last[1]) : 'E0'),
+      legend: Object.keys(this.HOUSES).map(h => ({ name: this.HOUSE_NAMES[h], color: this.HOUSES[h] })),
+      graphEdges, graphNodes, edgeLabelsOn: this.props.edgeLabels ?? false,
+      hasSel: !!sel, selName: sel ? sel.full : '', selColor: sel ? this.HOUSES[sel.h] : 'var(--text-faint)',
+      selMet: sel ? 'Met ' + this.code(1, sel.met) : '', selConns,
+      personName: person.name, personRole: person.role,
+      personCredits: person.credits.map(c => ({
+        title: c[0], meta: c[1],
+        open: openByTitle(c[0])
+      })),
+      friendRows: this.FRIENDS.map(f => ({ name: f.full, show: f.show, ep: f.ep, when: f.when })),
+      toastAddFriend: () => this.showToast('Friend invites coming soon'),
+      alertCards: [
+        { tag: 'Binge it', title: 'House of the Dragon S2 wrapped', body: 'The finale aired last night. All 8 episodes are ready \u2014 no cliffhanger waits.', when: '1d ago' },
+        { tag: 'Ended', title: 'Dark has ended', body: 'The series finale aired. All 3 seasons are bingeable start to finish.', when: '3w ago' }
+      ],
+      alertToggles: S.alertItems.map(a => mkToggle(a.id, a.title, a.sub)),
+      toast: S.toast, toastOn: !!S.toast, toastCanUndo: !!S.toastUndo,
+      toastProps: { style: { height: 'auto', minHeight: 48, maxWidth: '100%', padding: '11px 18px', lineHeight: 1.35, textWrap: 'pretty' } },
+      runUndo: () => {
+        const fn = S.toastUndo;
+        clearTimeout(this._tt);
+        this.setState({ toast: '', toastUndo: null });
+        if (fn) fn();
+      },
+      authOn: S.stage !== 'app',
+      stWelcome: S.stage === 'welcome', stTour: S.stage === 'tour', stPick: S.stage === 'pick',
+      welcomePosters: this.ONBOARD_PICKS.map(t => ({ title: t })),
+      openSignup: () => this.setState({ modal: 'signup' }),
+      openLogin: () => this.setState({ modal: 'login' }),
+      modalOn: !!S.modal, isSignup: S.modal === 'signup',
+      modalTitle: S.modal === 'login' ? 'Welcome back' : 'Create your account',
+      modalCta: S.modal === 'login' ? 'Log in' : 'Create account',
+      passHint: S.modal === 'login' ? '' : 'At least 8 characters',
+      swapLabel: S.modal === 'login' ? 'New to MySerial?' : 'Already tracking with us?',
+      swapAction: S.modal === 'login' ? 'Create an account' : 'Log in',
+      swapAuth: () => this.setState(s => ({ modal: s.modal === 'login' ? 'signup' : 'login' })),
+      closeModal: () => this.setState({ modal: null }),
+      fName: S.fName, fEmail: S.fEmail, fPass: S.fPass,
+      setName: val => this.setState({ fName: val }),
+      setEmail: val => this.setState({ fEmail: val }),
+      setPass: val => this.setState({ fPass: val }),
+      submitAuth: () => this.setState(s => s.modal === 'login'
+        ? { modal: null, stage: 'app' }
+        : { modal: null, stage: 'tour', tourI: 0 }),
+      tourNum: S.tourI + 1,
+      tourTitle: this.TOUR[S.tourI].title,
+      tourBody: this.TOUR[S.tourI].body,
+      tourPoints: this.TOUR[S.tourI].points.map(t => ({ text: t })),
+      tourDots: this.TOUR.map((_, i) => ({ w: i === S.tourI ? '20px' : '6px', bg: i === S.tourI ? 'var(--signal)' : 'var(--surface-pressed)' })),
+      tourCta: S.tourI === this.TOUR.length - 1 ? 'Add your shows' : 'Next',
+      tourNext: () => this.setState(s => s.tourI === this.TOUR.length - 1 ? { stage: 'pick' } : { tourI: s.tourI + 1 }),
+      skipTour: () => this.setState({ stage: 'pick' }),
+      pickQuery: S.pickQuery || '',
+      setPickQuery: val => this.setState({ pickQuery: val }),
+      pickShows: this.ONBOARD_PICKS.filter(t => !(S.pickQuery || '').trim() || t.toLowerCase().includes(S.pickQuery.trim().toLowerCase())).map(t => ({
+        title: t, years: this.PICK_YEARS[t] || '', on: !!S.picked[t],
+        ring: S.picked[t] ? 'var(--signal)' : 'transparent',
+        opacity: S.picked[t] || !nPicked ? 1 : 0.55,
+        toggle: () => this.setState(s => ({ picked: { ...s.picked, [t]: !s.picked[t] } }))
+      })),
+      pickDisabled: nPicked < 3,
+      pickCta: nPicked < 3 ? 'Pick ' + (3 - nPicked) + ' more' : 'Start tracking ' + nPicked + ' shows',
+      finishOnboarding: () => { this.setState({ stage: 'app', tab: 'home', view: 'home', stack: [] }); this.showToast(nPicked + ' shows added \u2014 you\u2019re all set'); }
+    };
+  }
+}
+
+</script>
+</body>
+</html>

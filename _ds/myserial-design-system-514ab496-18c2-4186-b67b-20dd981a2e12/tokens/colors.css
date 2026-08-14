@@ -1,0 +1,51 @@
+:root{
+/* ---- Base palette (dark-first, cinematic) ---- */
+--ink-0:#0C1014; /* app background */
+--ink-1:#141A21; /* raised surface */
+--ink-2:#1D2530; /* card */
+--ink-3:#28323F; /* elevated / pressed */
+--ink-line:#2E3947; /* hairline borders on dark */
+--paper-0:#F4F3F0; /* light-mode background (warm off-white) */
+--paper-1:#FFFFFF;
+--paper-line:#E4E2DC;
+--white:#FFFFFF;
+/* Text on dark */
+--fg-1:#F2F5F8;
+--fg-2:#9AA8B7;
+--fg-3:#5C6B7C;
+/* ---- Brand ---- */
+--signal:#FF5C38;        /* MySerial coral — primary accent */
+--signal-strong:#E8461F; /* pressed / emphasis */
+--signal-soft:rgba(255,92,56,.14);
+--signal-on:#1A0D08;     /* text on signal fills */
+/* ---- Semantic ---- */
+--star:#FFB43A;          /* ratings */
+--track:#3DD68C;         /* progress / watched / success */
+--track-soft:rgba(61,214,140,.14);
+--alert:#F4574D;         /* destructive / error */
+--info:#4CB8FF;          /* links / informational */
+--warn:#FFB43A;
+/* ---- Semantic aliases (dark default) ---- */
+--bg-app:var(--ink-0);
+--surface-card:var(--ink-1);
+--surface-raised:var(--ink-2);
+--surface-pressed:var(--ink-3);
+--border-hairline:var(--ink-line);
+--text-body:var(--fg-1);
+--text-muted:var(--fg-2);
+--text-faint:var(--fg-3);
+--text-link:var(--info);
+--nav-glass:rgba(20,26,33,.86);
+--scrim-poster:linear-gradient(180deg,rgba(12,16,20,0) 40%,rgba(12,16,20,.92) 100%); /* @kind other */
+}
+[data-theme="light"]{
+--bg-app:var(--paper-0);
+--surface-card:var(--paper-1);
+--surface-raised:var(--paper-1);
+--surface-pressed:#ECEAE4;
+--border-hairline:var(--paper-line);
+--text-body:#171D24;
+--text-muted:#5D6875;
+--text-faint:#98A1AC;
+--nav-glass:rgba(255,255,255,.88);
+}
