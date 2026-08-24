@@ -17,8 +17,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestToContaining;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
 class TmdbCatalogProviderTest {
@@ -40,7 +41,7 @@ class TmdbCatalogProviderTest {
     @Test
     void fetchShow_mapsCorrectly() throws Exception {
         String json = loadFixture("tmdb_show_1396.json");
-        mockServer.expect(requestToContaining("/tv/1396"))
+        mockServer.expect(requestTo(containsString("/tv/1396")))
                 .andExpect(method(HttpMethod.GET))
                 .andRespond(withSuccess(json, MediaType.APPLICATION_JSON));
 
@@ -57,7 +58,7 @@ class TmdbCatalogProviderTest {
     @Test
     void searchShows_returnsList() throws Exception {
         String json = loadFixture("tmdb_search_breaking.json");
-        mockServer.expect(requestToContaining("/search/tv"))
+        mockServer.expect(requestTo(containsString("/search/tv")))
                 .andExpect(method(HttpMethod.GET))
                 .andRespond(withSuccess(json, MediaType.APPLICATION_JSON));
 

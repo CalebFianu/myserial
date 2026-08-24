@@ -6,6 +6,7 @@ import '../core/storage/secure_storage.dart';
 import '../features/activity/screens/activity_screen.dart';
 import '../features/add/widgets/add_show_sheet.dart';
 import '../features/alerts/screens/alerts_screen.dart';
+import '../features/auth/providers/auth_provider.dart';
 import '../features/auth/screens/onboarding_screen.dart';
 import '../features/auth/screens/welcome_screen.dart';
 import '../features/home/screens/home_screen.dart';
@@ -88,11 +89,32 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: '/',
     redirect: (context, state) async {
-      // Only redirect from the root
-      if (state.matchedLocation == '/') {
+      final loc = state.matchedLocation;
+
+      if (loc == '/') {
         final isLoggedIn = await storage.isLoggedIn;
-        return isLoggedIn ? '/home' : '/welcome';
+        if (!isLoggedIn) return '/welcome';
+
+        // Check onboarding status from the auth state
+        final authState = ref.read(authProvider);
+        final user = authState.valueOrNull;
+        if (user is AuthStateAuthenticated &&
+            !user.user.onboardingCompleted) {
+          return '/onboarding';
+        }
+        return '/home';
       }
+
+      // Prevent already-onboarded users from revisiting onboarding
+      if (loc == '/onboarding') {
+        final authState = ref.read(authProvider);
+        final user = authState.valueOrNull;
+        if (user is AuthStateAuthenticated &&
+            user.user.onboardingCompleted) {
+          return '/home';
+        }
+      }
+
       return null;
     },
     routes: [

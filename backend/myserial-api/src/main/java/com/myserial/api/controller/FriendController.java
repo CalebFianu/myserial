@@ -4,19 +4,17 @@ import com.myserial.api.dto.request.AddFriendRequest;
 import com.myserial.api.dto.response.FriendResponse;
 import com.myserial.api.dto.response.FriendReviewResponse;
 import com.myserial.domain.entity.*;
-import com.myserial.domain.repository.EpisodeRatingRepository;
 import com.myserial.domain.service.ActivityService;
 import com.myserial.domain.service.FriendService;
+import com.myserial.domain.service.RatingService;
 import com.myserial.domain.service.WatchService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -27,7 +25,7 @@ public class FriendController extends BaseController {
     private final FriendService friendService;
     private final WatchService watchService;
     private final ActivityService activityService;
-    private final EpisodeRatingRepository episodeRatingRepository;
+    private final RatingService ratingService;
 
     @GetMapping
     public ResponseEntity<List<FriendResponse>> getFriends() {
@@ -60,30 +58,18 @@ public class FriendController extends BaseController {
 
     @GetMapping("/reviews")
     public ResponseEntity<Page<FriendReviewResponse>> getFriendReviews(Pageable pageable) {
-        Long userId = currentUserId();
-        List<Long> friendIds = friendService.getFriendIds(userId);
-        if (friendIds.isEmpty()) {
-            return ResponseEntity.ok(Page.empty(pageable));
-        }
-        List<FriendReviewResponse> reviews = new ArrayList<>();
-        for (Long friendId : friendIds) {
-            List<EpisodeRating> ratings = episodeRatingRepository.findByUserId(friendId);
-            for (EpisodeRating rating : ratings) {
-                User friend = rating.getUser();
-                Episode ep = rating.getEpisode();
-                Show show = ep.getShow();
-                reviews.add(new FriendReviewResponse(
-                        rating.getId(), DtoMapper.toUserResponse(friend),
-                        show.getId(), show.getTitle(), ep.getId(),
-                        ep.getSeasonNumber(), ep.getEpisodeNumber(), ep.getName(),
-                        rating.getScore(), rating.getReview(), rating.getUpdatedAt()
-                ));
-            }
-        }
-        reviews.sort((a, b) -> b.ratedAt().compareTo(a.ratedAt()));
-        int start = (int) pageable.getOffset();
-        int end = Math.min(start + pageable.getPageSize(), reviews.size());
-        List<FriendReviewResponse> pageContent = start >= reviews.size() ? List.of() : reviews.subList(start, end);
-        return ResponseEntity.ok(new PageImpl<>(pageContent, pageable, reviews.size()));
+        Page<EpisodeRating> page = ratingService.getFriendReviews(currentUserId(), pageable);
+        Page<FriendReviewResponse> response = page.map(rating -> {
+            User friend = rating.getUser();
+            Episode ep = rating.getEpisode();
+            Show show = ep.getShow();
+            return new FriendReviewResponse(
+                    rating.getId(), DtoMapper.toUserResponse(friend),
+                    show.getId(), show.getTitle(), ep.getId(),
+                    ep.getSeasonNumber(), ep.getEpisodeNumber(), ep.getName(),
+                    rating.getScore(), rating.getReview(), rating.getUpdatedAt()
+            );
+        });
+        return ResponseEntity.ok(response);
     }
 }

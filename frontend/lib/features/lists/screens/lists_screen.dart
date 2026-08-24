@@ -6,6 +6,7 @@ import '../../../design/spacing.dart';
 import '../../../design/typography.dart';
 import '../../../shared/widgets/ms_button.dart';
 import '../providers/lists_provider.dart';
+import '../widgets/create_list_sheet.dart';
 
 class ListsScreen extends ConsumerWidget {
   const ListsScreen({super.key});
@@ -53,7 +54,12 @@ class ListsScreen extends ConsumerWidget {
                       variant: MsButtonVariant.secondary,
                       size: MsButtonSize.sm,
                       leading: const Icon(Icons.add_rounded, size: 14),
-                      onPressed: () {},
+                      onPressed: () async {
+                        final created = await CreateListSheet.show(context);
+                        if (created != null && context.mounted) {
+                          context.push('/lists/${created.id}');
+                        }
+                      },
                     ),
                   ],
                 ),

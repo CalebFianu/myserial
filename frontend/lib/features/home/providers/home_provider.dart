@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/api/api_client.dart';
+import '../../../core/utils/tmdb_image.dart';
 
 // ── Models ────────────────────────────────────────────────────────────────────
 
@@ -23,6 +24,23 @@ class ContinueWatchingItem {
   final double progress;
   final int watchedCount;
   final int totalCount;
+
+  factory ContinueWatchingItem.fromJson(Map<String, dynamic> json) {
+    final ep = json['nextEpisode'] as Map<String, dynamic>? ?? {};
+    final sn = ep['seasonNumber'] as int? ?? 0;
+    final en = ep['episodeNumber'] as int? ?? 0;
+    return ContinueWatchingItem(
+      showId: json['showId'] as int? ?? 0,
+      showTitle: json['showTitle'] as String? ?? '',
+      posterUrl: tmdbImage(json['posterPath'] as String?),
+      episodeCode:
+          'S${sn.toString().padLeft(2, '0')}E${en.toString().padLeft(2, '0')}',
+      episodeTitle: ep['name'] as String? ?? '',
+      progress: (json['progress'] as num?)?.toDouble() ?? 0.0,
+      watchedCount: json['watchedCount'] as int? ?? 0,
+      totalCount: json['totalCount'] as int? ?? 0,
+    );
+  }
 }
 
 class BingeReadyItem {
@@ -41,6 +59,16 @@ class BingeReadyItem {
   final String description;
   final int seasonCount;
   final int episodeCount;
+
+  factory BingeReadyItem.fromJson(Map<String, dynamic> json) =>
+      BingeReadyItem(
+        showId: json['showId'] as int? ?? 0,
+        showTitle: json['title'] as String? ?? '',
+        posterUrl: tmdbImage(json['posterPath'] as String?),
+        description: json['description'] as String? ?? '',
+        seasonCount: 0,
+        episodeCount: json['episodeCount'] as int? ?? 0,
+      );
 }
 
 class FriendActivityItem {
@@ -55,6 +83,14 @@ class FriendActivityItem {
   final String? friendAvatarUrl;
   final String showTitle;
   final String? posterUrl;
+
+  factory FriendActivityItem.fromJson(Map<String, dynamic> json) =>
+      FriendActivityItem(
+        friendName: json['friendName'] as String? ?? '',
+        friendAvatarUrl: tmdbImage(json['friendAvatarPath'] as String?),
+        showTitle: json['showTitle'] as String? ?? '',
+        posterUrl: tmdbImage(json['posterPath'] as String?),
+      );
 }
 
 class HomeData {
@@ -73,69 +109,37 @@ class HomeData {
   final List<FriendActivityItem> friendActivity;
   final int upNextCount;
   final int diaryCount;
+
+  factory HomeData.fromJson(Map<String, dynamic> json) {
+    final cwJson = json['continueWatching'] as Map<String, dynamic>?;
+    final myShowsList = (json['myShows'] as List? ?? [])
+        .cast<Map<String, dynamic>>()
+        .map((e) => (
+              id: e['id'] as int? ?? 0,
+              title: e['title'] as String? ?? '',
+              posterUrl: tmdbImage(e['posterPath'] as String?),
+            ))
+        .toList();
+    final bingeList = (json['bingeReady'] as List? ?? [])
+        .cast<Map<String, dynamic>>()
+        .map(BingeReadyItem.fromJson)
+        .toList();
+    final friendList = (json['friendActivity'] as List? ?? [])
+        .cast<Map<String, dynamic>>()
+        .map(FriendActivityItem.fromJson)
+        .toList();
+
+    return HomeData(
+      continueWatching:
+          cwJson != null ? ContinueWatchingItem.fromJson(cwJson) : null,
+      myShows: myShowsList,
+      bingeReady: bingeList,
+      friendActivity: friendList,
+      upNextCount: json['upNextCount'] as int? ?? 0,
+      diaryCount: json['diaryCount'] as int? ?? 0,
+    );
+  }
 }
-
-// ── Mock data ─────────────────────────────────────────────────────────────────
-
-final _mockHomeData = HomeData(
-  continueWatching: const ContinueWatchingItem(
-    showId: 1,
-    showTitle: 'Severance',
-    posterUrl: '',
-    episodeCode: 'S02E04',
-    episodeTitle: 'Woe\'s Hollow',
-    progress: 0.6,
-    watchedCount: 6,
-    totalCount: 10,
-  ),
-  myShows: const [
-    (id: 1, title: 'Severance', posterUrl: null),
-    (id: 2, title: 'The Bear', posterUrl: null),
-    (id: 3, title: 'Succession', posterUrl: null),
-    (id: 4, title: 'The Wire', posterUrl: null),
-    (id: 5, title: 'Slow Horses', posterUrl: null),
-  ],
-  bingeReady: const [
-    BingeReadyItem(
-      showId: 6,
-      showTitle: 'House of the Dragon',
-      posterUrl: null,
-      description: 'Season 2 is complete — 8 episodes ready to binge.',
-      seasonCount: 2,
-      episodeCount: 8,
-    ),
-    BingeReadyItem(
-      showId: 7,
-      showTitle: 'Andor',
-      posterUrl: null,
-      description: 'Both seasons available — 24 episodes total.',
-      seasonCount: 2,
-      episodeCount: 24,
-    ),
-  ],
-  friendActivity: const [
-    FriendActivityItem(
-      friendName: 'Alex',
-      friendAvatarUrl: null,
-      showTitle: 'The Bear',
-      posterUrl: null,
-    ),
-    FriendActivityItem(
-      friendName: 'Jordan',
-      friendAvatarUrl: null,
-      showTitle: 'White Lotus',
-      posterUrl: null,
-    ),
-    FriendActivityItem(
-      friendName: 'Sam',
-      friendAvatarUrl: null,
-      showTitle: 'Succession',
-      posterUrl: null,
-    ),
-  ],
-  upNextCount: 12,
-  diaryCount: 47,
-);
 
 // ── Provider ──────────────────────────────────────────────────────────────────
 
@@ -146,18 +150,17 @@ final homeProvider = AsyncNotifierProvider<HomeNotifier, HomeData>(
 class HomeNotifier extends AsyncNotifier<HomeData> {
   @override
   Future<HomeData> build() async {
-    // In production, fetch from API
-    // final api = ref.watch(apiClientProvider);
-    // return api.get('/home', fromJson: HomeData.fromJson);
-    await Future.delayed(const Duration(milliseconds: 600));
-    return _mockHomeData;
+    final api = ref.watch(apiClientProvider);
+    final data = await api.get<Map<String, dynamic>>('/home');
+    return HomeData.fromJson(data);
   }
 
   Future<void> refresh() async {
     state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
-      await Future.delayed(const Duration(milliseconds: 400));
-      return _mockHomeData;
+      final api = ref.read(apiClientProvider);
+      final data = await api.get<Map<String, dynamic>>('/home');
+      return HomeData.fromJson(data);
     });
   }
 }

@@ -5,8 +5,10 @@ import '../../../design/colors.dart';
 import '../../../design/spacing.dart';
 import '../../../design/typography.dart';
 import '../../../design/motion.dart';
+import '../../../features/add/widgets/add_show_sheet.dart';
 import '../../../shared/widgets/ms_button.dart';
 import '../../../shared/widgets/poster_placeholder.dart';
+import '../providers/auth_provider.dart';
 
 // Mock show data for onboarding picker
 const _popularShows = [
@@ -63,7 +65,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
   final _pageCtrl = PageController();
   int _currentPage = 0;
   bool _showPicker = false;
-  final Set<String> _selectedShows = {};
   final _searchCtrl = TextEditingController();
   String _searchQuery = '';
 
@@ -85,8 +86,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
     }
   }
 
-  void _finish() {
-    context.go('/home');
+  void _finish() async {
+    await ref.read(authProvider.notifier).completeOnboarding();
+    if (mounted) context.go('/home');
   }
 
   @override
@@ -189,7 +191,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
             ),
             child: MsButton(
               label: _currentPage == _tourCards.length - 1
-                  ? 'Add your first shows'
+                  ? 'Pick your first show'
                   : 'Next',
               variant: MsButtonVariant.primary,
               size: MsButtonSize.lg,
@@ -201,6 +203,20 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
         ],
       ),
     );
+  }
+
+  void _openAddSheet(String showTitle) async {
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withOpacity(0.6),
+      builder: (_) => AddShowSheet(initialQuery: showTitle),
+    );
+    if (mounted) {
+      await ref.read(authProvider.notifier).completeOnboarding();
+      if (mounted) context.go('/home');
+    }
   }
 
   Widget _buildPicker() {
@@ -224,10 +240,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Add your first shows', style: AppTypography.title),
+                Text('Pick your first show', style: AppTypography.title),
                 const SizedBox(height: AppSpacing.sp2),
                 Text(
-                  'Pick at least 3 shows to get started.',
+                  'Tap a show to get started.',
                   style: AppTypography.body.copyWith(color: AppColors.fg2),
                 ),
                 const SizedBox(height: AppSpacing.sp4),
@@ -249,14 +265,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
                         : null,
                   ),
                 ),
-                const SizedBox(height: AppSpacing.sp3),
-                if (_selectedShows.isNotEmpty)
-                  Text(
-                    '${_selectedShows.length} selected',
-                    style: AppTypography.caption.copyWith(
-                      color: AppColors.signal,
-                    ),
-                  ),
               ],
             ),
           ),
@@ -276,63 +284,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
               itemCount: filtered.length,
               itemBuilder: (context, i) {
                 final show = filtered[i];
-                final selected = _selectedShows.contains(show.title);
-                return GestureDetector(
-                  onTap: () => setState(() {
-                    if (selected) {
-                      _selectedShows.remove(show.title);
-                    } else {
-                      _selectedShows.add(show.title);
-                    }
-                  }),
-                  child: Stack(
-                    children: [
-                      PosterPlaceholder(
-                        title: show.title,
-                        imageUrl: show.imageUrl,
-                      ),
-                      if (selected)
-                        Positioned.fill(
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: AppColors.signal.withOpacity(0.3),
-                              borderRadius:
-                                  BorderRadius.circular(AppRadius.poster),
-                              border: Border.all(
-                                color: AppColors.signal,
-                                width: 2,
-                              ),
-                            ),
-                            child: const Center(
-                              child: Icon(
-                                Icons.check_circle_rounded,
-                                color: Colors.white,
-                                size: 32,
-                              ),
-                            ),
-                          ),
-                        ),
-                      Positioned(
-                        bottom: 6,
-                        left: 6,
-                        right: 6,
-                        child: Text(
-                          show.title,
-                          style: AppTypography.micro.copyWith(
-                            color: Colors.white,
-                            shadows: [
-                              Shadow(
-                                color: Colors.black.withOpacity(0.8),
-                                blurRadius: 4,
-                              ),
-                            ],
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
+                return PosterPlaceholder(
+                  title: show.title,
+                  imageUrl: show.imageUrl,
+                  onTap: () => _openAddSheet(show.title),
                 );
               },
             ),
@@ -340,12 +295,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
           Padding(
             padding: const EdgeInsets.all(AppSpacing.pageGutter),
             child: MsButton(
-              label: 'Continue',
-              variant: MsButtonVariant.primary,
+              label: 'Skip',
+              variant: MsButtonVariant.ghost,
               size: MsButtonSize.lg,
               fullWidth: true,
-              disabled: _selectedShows.length < 3,
-              onPressed: _selectedShows.length >= 3 ? _finish : null,
+              onPressed: _finish,
             ),
           ),
         ],

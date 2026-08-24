@@ -241,7 +241,7 @@ class _AuthSheetContentState extends ConsumerState<_AuthSheetContent> {
       }
       if (mounted) {
         Navigator.of(context).pop();
-        context.go('/onboarding');
+        context.go(_isLogin ? '/home' : '/onboarding');
       }
     } catch (e) {
       setState(() => _error = e.toString());

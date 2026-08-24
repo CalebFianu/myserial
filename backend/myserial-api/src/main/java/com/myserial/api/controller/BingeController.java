@@ -28,7 +28,7 @@ public class BingeController extends BaseController {
     public ResponseEntity<BingeTrackResponse> trackShow(@PathVariable Long showId) {
         Long userId = currentUserId();
         BingeTrack track = bingeService.trackShow(userId, showId);
-        activityService.log(userId, "BINGE_STARTED", showId, null, null, null);
+        activityService.log(userId, "BINGE_STARTED", track.getShow().getId(), null, null, null);
         return ResponseEntity.ok(DtoMapper.toBingeTrackResponse(track));
     }
 

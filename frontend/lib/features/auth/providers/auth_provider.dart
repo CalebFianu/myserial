@@ -12,6 +12,7 @@ class AuthUser {
     required this.handle,
     this.avatarUrl,
     this.bio,
+    this.onboardingCompleted = false,
   });
 
   final String id;
@@ -20,14 +21,16 @@ class AuthUser {
   final String handle;
   final String? avatarUrl;
   final String? bio;
+  final bool onboardingCompleted;
 
   factory AuthUser.fromJson(Map<String, dynamic> json) => AuthUser(
-        id: json['id'] as String,
+        id: json['id'].toString(),
         name: json['name'] as String,
         email: json['email'] as String,
         handle: json['handle'] as String? ?? '',
-        avatarUrl: json['avatar_url'] as String?,
+        avatarUrl: json['avatarPath'] as String?,
         bio: json['bio'] as String?,
+        onboardingCompleted: json['onboardingCompleted'] as bool? ?? false,
       );
 }
 
@@ -78,9 +81,9 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
       );
       final storage = ref.read(secureStorageProvider);
       await storage.saveTokens(
-        accessToken: data['access_token'] as String,
-        refreshToken: data['refresh_token'] as String,
-        userId: (data['user'] as Map<String, dynamic>)['id'] as String,
+        accessToken: data['accessToken'] as String,
+        refreshToken: data['refreshToken'] as String,
+        userId: (data['user'] as Map<String, dynamic>)['id'].toString(),
       );
       return AuthStateAuthenticated(
         AuthUser.fromJson(data['user'] as Map<String, dynamic>),
@@ -102,14 +105,31 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
       );
       final storage = ref.read(secureStorageProvider);
       await storage.saveTokens(
-        accessToken: data['access_token'] as String,
-        refreshToken: data['refresh_token'] as String,
-        userId: (data['user'] as Map<String, dynamic>)['id'] as String,
+        accessToken: data['accessToken'] as String,
+        refreshToken: data['refreshToken'] as String,
+        userId: (data['user'] as Map<String, dynamic>)['id'].toString(),
       );
       return AuthStateAuthenticated(
         AuthUser.fromJson(data['user'] as Map<String, dynamic>),
       );
     });
+  }
+
+  Future<void> completeOnboarding() async {
+    final api = ref.read(apiClientProvider);
+    await api.post<Map<String, dynamic>>('/auth/onboarding-complete');
+    final current = state.valueOrNull;
+    if (current is AuthStateAuthenticated) {
+      state = AsyncData(AuthStateAuthenticated(AuthUser(
+        id: current.user.id,
+        name: current.user.name,
+        email: current.user.email,
+        handle: current.user.handle,
+        avatarUrl: current.user.avatarUrl,
+        bio: current.user.bio,
+        onboardingCompleted: true,
+      )));
+    }
   }
 
   Future<void> logout() async {

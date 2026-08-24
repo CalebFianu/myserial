@@ -35,11 +35,11 @@ class AuthInterceptor extends Interceptor {
             baseUrl: err.requestOptions.baseUrl,
           ));
           final response = await dio.post<dynamic>('/auth/refresh', data: {
-            'refresh_token': refreshToken,
+            'refreshToken': refreshToken,
           });
 
-          final newToken = response.data['access_token'] as String?;
-          final newRefresh = response.data['refresh_token'] as String?;
+          final newToken = response.data['accessToken'] as String?;
+          final newRefresh = response.data['refreshToken'] as String?;
 
           if (newToken != null) {
             await storage.saveTokens(

@@ -1,5 +1,6 @@
 package com.myserial.api.controller;
 
+import com.myserial.api.dto.response.GenreStatResponse;
 import com.myserial.api.dto.response.StatsResponse;
 import com.myserial.domain.service.StatsService;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +22,10 @@ public class StatsController extends BaseController {
         return ResponseEntity.ok(new StatsResponse(
                 stats.episodesWatched(),
                 stats.totalMinutes(),
-                stats.ratingsHistogram()
+                stats.ratingsHistogram(),
+                stats.genreBreakdown().stream()
+                        .map(g -> new GenreStatResponse(g.genre(), g.count(), g.percentage()))
+                        .toList()
         ));
     }
 }

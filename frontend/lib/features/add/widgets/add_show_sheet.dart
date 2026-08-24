@@ -1,27 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/api/api_client.dart';
 import '../../../design/colors.dart';
 import '../../../design/spacing.dart';
 import '../../../design/typography.dart';
+import '../../../features/search/providers/search_provider.dart';
+import '../../../features/show/providers/show_provider.dart';
 import '../../../shared/widgets/ms_button.dart';
 import '../../../shared/widgets/ms_chip.dart';
 import '../../../shared/widgets/ms_sheet.dart';
 import '../../../shared/widgets/poster_placeholder.dart';
 import '../../../shared/widgets/segmented_control.dart';
 
-// Mock show data
-const _searchableShows = [
-  (id: 1, title: 'Severance', year: '2022', status: 'Returning', posterUrl: ''),
-  (id: 2, title: 'The Bear', year: '2022', status: 'Returning', posterUrl: ''),
-  (id: 3, title: 'Succession', year: '2018–2023', status: 'Ended', posterUrl: ''),
-  (id: 4, title: 'Breaking Bad', year: '2008–2013', status: 'Ended', posterUrl: ''),
-  (id: 5, title: 'The Wire', year: '2002–2008', status: 'Ended', posterUrl: ''),
-  (id: 6, title: 'House of the Dragon', year: '2022', status: 'Returning', posterUrl: ''),
-  (id: 7, title: 'Andor', year: '2022', status: 'Returning', posterUrl: ''),
-];
-
 class AddShowSheet extends ConsumerStatefulWidget {
-  const AddShowSheet({super.key});
+  const AddShowSheet({super.key, this.initialQuery});
+
+  final String? initialQuery;
 
   @override
   ConsumerState<AddShowSheet> createState() => _AddShowSheetState();
@@ -36,18 +30,25 @@ class _AddShowSheetState extends ConsumerState<AddShowSheet> {
   int _modeTab = 0; // 0=Watching, 1=Watched, 2=Add to list
   int _selectedSeason = 1;
   int _selectedEpisode = 0;
+  bool _saving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialQuery != null) {
+      _searchCtrl.text = widget.initialQuery!;
+      _query = widget.initialQuery!;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.read(searchProvider.notifier).setQuery(widget.initialQuery!);
+      });
+    }
+  }
 
   @override
   void dispose() {
     _searchCtrl.dispose();
     super.dispose();
   }
-
-  List get _filteredShows => _searchableShows
-      .where((s) =>
-          _query.isEmpty ||
-          s.title.toLowerCase().contains(_query.toLowerCase()))
-      .toList();
 
   @override
   Widget build(BuildContext context) {
@@ -62,6 +63,10 @@ class _AddShowSheetState extends ConsumerState<AddShowSheet> {
   }
 
   Widget _buildSearch() {
+    final searchState = ref.watch(searchProvider);
+    final results = _query.isEmpty ? <ShowResult>[] : searchState.showResults;
+    final isLoading = searchState.isLoading;
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -69,7 +74,10 @@ class _AddShowSheetState extends ConsumerState<AddShowSheet> {
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.pageGutter),
           child: TextField(
             controller: _searchCtrl,
-            onChanged: (v) => setState(() => _query = v),
+            onChanged: (v) {
+              setState(() => _query = v);
+              ref.read(searchProvider.notifier).setQuery(v);
+            },
             autofocus: true,
             decoration: InputDecoration(
               hintText: 'Search shows...',
@@ -80,6 +88,7 @@ class _AddShowSheetState extends ConsumerState<AddShowSheet> {
                       onPressed: () {
                         _searchCtrl.clear();
                         setState(() => _query = '');
+                        ref.read(searchProvider.notifier).setQuery('');
                       },
                     )
                   : null,
@@ -87,81 +96,99 @@ class _AddShowSheetState extends ConsumerState<AddShowSheet> {
           ),
         ),
         const SizedBox(height: AppSpacing.sp3),
-        ConstrainedBox(
-          constraints: const BoxConstraints(maxHeight: 400),
-          child: ListView.builder(
-            shrinkWrap: true,
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.pageGutter),
-            itemCount: _filteredShows.length,
-            itemBuilder: (context, i) {
-              final show = _filteredShows[i];
-              final isDark = Theme.of(context).brightness == Brightness.dark;
-              return Padding(
-                padding: const EdgeInsets.only(bottom: AppSpacing.sp2),
-                child: Row(
-                  children: [
-                    SizedBox(
-                      width: 48,
-                      child: PosterPlaceholder(
-                        title: show.title,
-                        imageUrl: show.posterUrl,
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.sp3),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(show.title, style: AppTypography.cardTitle),
-                          Text(
-                            '${show.year} · ${show.status}',
-                            style: AppTypography.caption,
-                          ),
-                        ],
-                      ),
-                    ),
-                    GestureDetector(
-                      onTap: () => setState(() {
-                        _selectedShowId = show.id;
-                        _selectedShowTitle = show.title;
-                        _selectedShowPosterUrl = show.posterUrl;
-                      }),
-                      child: Container(
-                        width: 32,
-                        height: 32,
-                        decoration: BoxDecoration(
-                          color: AppColors.signalSoft,
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: AppColors.signal.withOpacity(0.3),
-                          ),
-                        ),
-                        child: const Icon(
-                          Icons.add_rounded,
-                          color: AppColors.signal,
-                          size: 18,
+        if (isLoading && _query.isNotEmpty)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: AppSpacing.sp4),
+            child: CircularProgressIndicator(color: AppColors.signal),
+          )
+        else if (_query.isEmpty)
+          Padding(
+            padding: const EdgeInsets.all(AppSpacing.sp4),
+            child: Text(
+              'Search for a show to add.',
+              style: AppTypography.body.copyWith(color: AppColors.fg2),
+              textAlign: TextAlign.center,
+            ),
+          )
+        else
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxHeight: 400),
+            child: ListView.builder(
+              shrinkWrap: true,
+              padding:
+                  const EdgeInsets.symmetric(horizontal: AppSpacing.pageGutter),
+              itemCount: results.length,
+              itemBuilder: (context, i) {
+                final show = results[i];
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: AppSpacing.sp2),
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        width: 48,
+                        child: PosterPlaceholder(
+                          title: show.title,
+                          imageUrl: show.posterUrl,
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              );
-            },
+                      const SizedBox(width: AppSpacing.sp3),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(show.title, style: AppTypography.cardTitle),
+                            Text(
+                              [
+                                if (show.year != null) show.year!,
+                                if (show.status != null) show.status!,
+                              ].join(' · '),
+                              style: AppTypography.caption,
+                            ),
+                          ],
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () => setState(() {
+                          _selectedShowId = show.id;
+                          _selectedShowTitle = show.title;
+                          _selectedShowPosterUrl = show.posterUrl;
+                        }),
+                        child: Container(
+                          width: 32,
+                          height: 32,
+                          decoration: BoxDecoration(
+                            color: AppColors.signalSoft,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: AppColors.signal.withOpacity(0.3),
+                            ),
+                          ),
+                          child: const Icon(
+                            Icons.add_rounded,
+                            color: AppColors.signal,
+                            size: 18,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
           ),
-        ),
       ],
     );
   }
 
   Widget _buildSelectedFlow() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final showAsync = ref.watch(showDetailProvider(_selectedShowId!));
 
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.pageGutter),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Selected show card + Change button
           Row(
             children: [
               SizedBox(
@@ -185,13 +212,14 @@ class _AddShowSheetState extends ConsumerState<AddShowSheet> {
                 onPressed: () => setState(() {
                   _selectedShowId = null;
                   _selectedShowTitle = null;
+                  _selectedSeason = 1;
+                  _selectedEpisode = 0;
                 }),
               ),
             ],
           ),
           const SizedBox(height: AppSpacing.sp4),
 
-          // Mode segmented control
           SegmentedControl(
             options: const ['Watching', 'Watched', 'Add to list'],
             selectedIndex: _modeTab,
@@ -199,63 +227,111 @@ class _AddShowSheetState extends ConsumerState<AddShowSheet> {
           ),
           const SizedBox(height: AppSpacing.sp5),
 
-          // Mode content
-          if (_modeTab == 0) _buildWatchingMode(isDark),
-          if (_modeTab == 1) _buildWatchedMode(isDark),
-          if (_modeTab == 2) _buildListMode(isDark),
+          showAsync.when(
+            loading: () => const Center(
+              child: Padding(
+                padding: EdgeInsets.all(AppSpacing.sp4),
+                child: CircularProgressIndicator(color: AppColors.signal),
+              ),
+            ),
+            error: (_, __) => Text(
+              'Could not load show details.',
+              style: AppTypography.body.copyWith(color: AppColors.fg2),
+            ),
+            data: (show) {
+              if (_modeTab == 0) return _buildWatchingMode(isDark, show.seasons);
+              if (_modeTab == 1) return _buildWatchedMode(isDark);
+              return _buildListMode(isDark);
+            },
+          ),
 
           const SizedBox(height: AppSpacing.sp5),
 
           MsButton(
-            label: 'Save',
+            label: _saving ? 'Saving...' : 'Save',
             variant: MsButtonVariant.primary,
             size: MsButtonSize.lg,
             fullWidth: true,
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: _saving ? null : _onSave,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildWatchingMode(bool isDark) {
-    final seasons = ['S1', 'S2', 'S3'];
-    final episodes = List.generate(10, (i) => 'E${i + 1}');
+  Future<void> _onSave() async {
+    if (_selectedShowId == null) return;
+    setState(() => _saving = true);
+    try {
+      final api = ref.read(apiClientProvider);
+      // Track the show (creates BingeTrack)
+      await api.post('/binge/$_selectedShowId');
+
+      if (_modeTab == 2) {
+        // "Add to list" mode — add to watchlist
+        await api.post('/lists/watchlist/$_selectedShowId');
+      }
+
+      if (mounted) Navigator.of(context).pop(true);
+    } catch (_) {
+      setState(() => _saving = false);
+    }
+  }
+
+  Widget _buildWatchingMode(bool isDark, List<SeasonSummary> seasons) {
+    if (seasons.isEmpty) {
+      return Text(
+        'No season data available.',
+        style: AppTypography.body.copyWith(color: AppColors.fg2),
+      );
+    }
+
+    // Find the selected season's episode count
+    final selectedSeasonData = seasons.firstWhere(
+      (s) => s.seasonNumber == _selectedSeason,
+      orElse: () => seasons.first,
+    );
+    final episodeCount = selectedSeasonData.episodeCount;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Season', style: AppTypography.captionSemiBold.copyWith(color: AppColors.fg3)),
+        Text('Season',
+            style:
+                AppTypography.captionSemiBold.copyWith(color: AppColors.fg3)),
         const SizedBox(height: AppSpacing.sp2),
         Wrap(
           spacing: AppSpacing.sp2,
           runSpacing: AppSpacing.sp2,
-          children: seasons.asMap().entries.map((e) {
+          children: seasons.map((s) {
             return MsChip(
-              label: e.value,
-              selected: _selectedSeason == e.key + 1,
+              label: 'S${s.seasonNumber}',
+              selected: _selectedSeason == s.seasonNumber,
               small: true,
               onTap: () => setState(() {
-                _selectedSeason = e.key + 1;
+                _selectedSeason = s.seasonNumber;
                 _selectedEpisode = 0;
               }),
             );
           }).toList(),
         ),
         const SizedBox(height: AppSpacing.sp4),
-        Text('Last watched episode', style: AppTypography.captionSemiBold.copyWith(color: AppColors.fg3)),
+        Text('Last watched episode',
+            style:
+                AppTypography.captionSemiBold.copyWith(color: AppColors.fg3)),
         const SizedBox(height: AppSpacing.sp2),
         Wrap(
           spacing: AppSpacing.sp2,
           runSpacing: AppSpacing.sp2,
-          children: episodes.asMap().entries.map((e) {
+          children: List.generate(episodeCount, (i) {
+            final epNum = i + 1;
             return MsChip(
-              label: e.value,
-              selected: _selectedEpisode == e.key + 1,
+              label: 'E$epNum',
+              selected: _selectedEpisode == epNum,
               small: true,
-              onTap: () => setState(() => _selectedEpisode = e.key + 1),
+              onTap: () => setState(() => _selectedEpisode = epNum),
             );
-          }).toList(),
+          }),
         ),
         const SizedBox(height: AppSpacing.sp3),
         if (_selectedEpisode > 0)
@@ -276,7 +352,9 @@ class _AddShowSheetState extends ConsumerState<AddShowSheet> {
           style: AppTypography.body.copyWith(color: AppColors.fg2),
         ),
         const SizedBox(height: AppSpacing.sp4),
-        Text('Date finished', style: AppTypography.captionSemiBold.copyWith(color: AppColors.fg3)),
+        Text('Date finished',
+            style:
+                AppTypography.captionSemiBold.copyWith(color: AppColors.fg3)),
         const SizedBox(height: AppSpacing.sp2),
         Wrap(
           spacing: AppSpacing.sp2,
@@ -289,14 +367,16 @@ class _AddShowSheetState extends ConsumerState<AddShowSheet> {
   }
 
   Widget _buildListMode(bool isDark) {
-    final lists = ['Desert Island Picks', 'Best Season Finales', 'Watch with Partner'];
+    const lists = ['Desert Island Picks', 'Best Season Finales', 'Watch with Partner'];
     final Set<String> checked = {};
 
     return StatefulBuilder(
       builder: (context, setSS) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Add to list', style: AppTypography.captionSemiBold.copyWith(color: AppColors.fg3)),
+          Text('Add to list',
+              style: AppTypography.captionSemiBold
+                  .copyWith(color: AppColors.fg3)),
           const SizedBox(height: AppSpacing.sp2),
           ...lists.map((list) {
             final isChecked = checked.contains(list);

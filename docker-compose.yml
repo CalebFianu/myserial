@@ -4,14 +4,14 @@ services:
     container_name: myserial-postgres
     environment:
       POSTGRES_DB: myserial
-      POSTGRES_USER: myserial
-      POSTGRES_PASSWORD: myserial
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: cal1234B
     ports:
       - "5432:5432"
     volumes:
       - myserial_pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U myserial -d myserial"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d myserial"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -28,6 +28,26 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: myserial-api
+    ports:
+      - "8080:8080"
+    environment:
+      DATABASE_URL: jdbc:postgresql://postgres:5432/myserial
+      DATABASE_USER: postgres
+      DATABASE_PASSWORD: cal1234B
+      JWT_SECRET: ${JWT_SECRET}
+      TMDB_API_KEY: ${TMDB_API_KEY}
+      PORT: 8080
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
 
 volumes:
   myserial_pgdata:

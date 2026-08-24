@@ -4,19 +4,19 @@
 claude_output/
 CLAUDE.md
 *.claude-conversation
+plan.md
 
-# === Java / Spring Boot / Maven ===
-backend/**/target/
+# === Java / Spring Boot ===
 backend/**/*.class
-backend/**/*.jar
 backend/**/*.war
 backend/**/*.ear
 backend/**/*.log
 backend/**/hs_err_pid*
 
-# === Maven ===
-.mvn/wrapper/maven-wrapper.jar
-!.mvn/wrapper/maven-wrapper.properties
+# === Gradle ===
+backend/.gradle/
+backend/**/build/
+!backend/gradle/wrapper/gradle-wrapper.jar
 
 # === Spring Boot ===
 backend/**/.factorypath
@@ -97,5 +97,4 @@ logs/
 # === Coverage / Test ===
 coverage/
 frontend/coverage/
-backend/**/surefire-reports/
-backend/**/failsafe-reports/
+backend/**/reports/

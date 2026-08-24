@@ -5,6 +5,8 @@ import com.myserial.api.exception.NotFoundException;
 import com.myserial.catalog.CatalogProvider;
 import com.myserial.catalog.dto.ShowSummary;
 import com.myserial.domain.entity.*;
+import com.myserial.domain.repository.WatchedEpisodeRepository;
+import com.myserial.domain.service.ListService;
 import com.myserial.domain.service.ShowService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -22,6 +24,8 @@ public class ShowController extends BaseController {
 
     private final ShowService showService;
     private final CatalogProvider catalogProvider;
+    private final ListService listService;
+    private final WatchedEpisodeRepository watchedEpisodeRepository;
 
     @GetMapping("/search")
     public ResponseEntity<Page<ShowSummaryResponse>> search(
@@ -45,12 +49,13 @@ public class ShowController extends BaseController {
             @PathVariable Long id,
             @RequestParam(defaultValue = "US") String country) {
         Show show = showService.findById(id);
-        List<Season> seasons = showService.getSeasons(id);
-        List<Credit> credits = showService.getCredits(id);
-        List<StreamingAvailability> streaming = showService.getStreamingAvailability(id, country);
+        Long showId = show.getId();
+        List<Season> seasons = showService.getSeasons(showId);
+        List<Credit> credits = showService.getCredits(showId);
+        List<StreamingAvailability> streaming = showService.getStreamingAvailability(showId, country);
 
         List<SeasonResponse> seasonResponses = seasons.stream().map(s -> {
-            List<Episode> eps = showService.getSeasonEpisodes(id, s.getSeasonNumber());
+            List<Episode> eps = showService.getSeasonEpisodes(showId, s.getSeasonNumber());
             return DtoMapper.toSeasonResponse(s, eps);
         }).toList();
 
@@ -71,12 +76,17 @@ public class ShowController extends BaseController {
                 .map(DtoMapper::toStreamingProviderResponse)
                 .toList();
 
+        Long userId = currentUserId();
+        boolean inWatchlist = listService.isInWatchlist(userId, showId);
+        long watchedCount = watchedEpisodeRepository.countByUserIdAndEpisodeShowId(userId, showId);
+
         ShowDetailResponse response = new ShowDetailResponse(
                 show.getId(), show.getTmdbId(), show.getTitle(), show.getOriginalTitle(),
                 show.getOverview(), show.getStatus(), show.getFirstAirDate(), show.getLastAirDate(),
                 show.getPosterPath(), show.getBackdropPath(), show.getGenres(), show.getNetwork(),
                 show.getEpisodeRunTime(), show.getVoteAverage(), show.getVoteCount(), show.getPopularity(),
-                seasonResponses, castPreview, crewPreview, streamingResponses
+                seasonResponses, castPreview, crewPreview, streamingResponses,
+                inWatchlist, watchedCount
         );
         return ResponseEntity.ok(response);
     }
@@ -104,5 +114,22 @@ public class ShowController extends BaseController {
                 .map(DtoMapper::toCrewMemberResponse)
                 .toList();
         return ResponseEntity.ok(new CastResponse(cast, crew));
+    }
+
+    @GetMapping("/popular")
+    public ResponseEntity<List<ShowSummaryResponse>> getPopular() {
+        List<Show> shows = showService.getPopular(20);
+        return ResponseEntity.ok(shows.stream().map(DtoMapper::toShowSummaryResponse).toList());
+    }
+
+    @GetMapping("/{id}/recap")
+    public ResponseEntity<RecapResponse> getRecap(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "3") int chunkSize) {
+        ShowService.RecapResult result = showService.getRecap(id, currentUserId(), chunkSize);
+        List<RecapResponse.RecapChapter> chapters = result.chapters().stream()
+                .map(c -> new RecapResponse.RecapChapter(c.range(), c.title(), c.body(), c.unlockAfterEpisode()))
+                .toList();
+        return ResponseEntity.ok(new RecapResponse(chapters, result.watchedCount()));
     }
 }

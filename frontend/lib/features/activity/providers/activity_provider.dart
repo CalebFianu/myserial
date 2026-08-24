@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/api/api_client.dart';
 
 enum ActivityType { watched, rated, added, completed, rewatched }
 
@@ -22,6 +23,58 @@ class ActivityEvent {
   final String? episodeCode;
   final double? rating;
   final String? showTitle;
+
+  factory ActivityEvent.fromJson(Map<String, dynamic> json) {
+    final eventType = json['eventType'] as String? ?? '';
+    final showTitle = json['showTitle'] as String?;
+    final type = _mapEventType(eventType);
+    final text = _buildText(eventType, showTitle);
+    return ActivityEvent(
+      id: json['id'].toString(),
+      type: type,
+      text: text,
+      timestamp: DateTime.parse(json['createdAt'] as String),
+      showId: json['showId'] as int?,
+      episodeCode: null,
+      rating: null,
+      showTitle: showTitle,
+    );
+  }
+
+  static ActivityType _mapEventType(String eventType) {
+    switch (eventType) {
+      case 'EPISODE_WATCHED':
+        return ActivityType.watched;
+      case 'EPISODE_RATED':
+        return ActivityType.rated;
+      case 'LIST_ADD':
+        return ActivityType.added;
+      case 'SEASON_WATCHED':
+        return ActivityType.completed;
+      case 'BINGE_STARTED':
+        return ActivityType.watched;
+      default:
+        return ActivityType.watched;
+    }
+  }
+
+  static String _buildText(String eventType, String? showTitle) {
+    final title = showTitle ?? 'a show';
+    switch (eventType) {
+      case 'EPISODE_WATCHED':
+        return 'Watched an episode of $title';
+      case 'EPISODE_RATED':
+        return 'Rated an episode of $title';
+      case 'LIST_ADD':
+        return 'Added $title to a list';
+      case 'SEASON_WATCHED':
+        return 'Finished a season of $title';
+      case 'BINGE_STARTED':
+        return 'Started watching $title';
+      default:
+        return 'Activity on $title';
+    }
+  }
 }
 
 class FriendActivity {
@@ -46,6 +99,21 @@ class FriendActivity {
   final String? review;
   final double? rating;
   final int? showId;
+
+  factory FriendActivity.fromJson(Map<String, dynamic> json) {
+    final showTitle = json['showTitle'] as String? ?? '';
+    return FriendActivity(
+      friendId: json['userId'].toString(),
+      friendName: json['handle'] as String? ?? '',
+      friendAvatarUrl: null,
+      showTitle: showTitle,
+      episodeCode: showTitle,
+      timestamp: DateTime.parse(json['createdAt'] as String),
+      review: null,
+      rating: null,
+      showId: json['showId'] as int?,
+    );
+  }
 }
 
 class ActivityData {
@@ -57,87 +125,6 @@ class ActivityData {
   final List<FriendActivity> friendActivity;
 }
 
-final _now = DateTime.now();
-
-final _mockActivity = ActivityData(
-  myActivity: [
-    ActivityEvent(
-      id: '1',
-      type: ActivityType.watched,
-      text: 'Watched S02E04 of Severance',
-      timestamp: _now.subtract(const Duration(hours: 2)),
-      showId: 1,
-      episodeCode: 'S02E04',
-      showTitle: 'Severance',
-    ),
-    ActivityEvent(
-      id: '2',
-      type: ActivityType.rated,
-      text: 'Rated Severance S02E04 ★ 4.5',
-      timestamp: _now.subtract(const Duration(hours: 2, minutes: 5)),
-      showId: 1,
-      episodeCode: 'S02E04',
-      rating: 4.5,
-      showTitle: 'Severance',
-    ),
-    ActivityEvent(
-      id: '3',
-      type: ActivityType.watched,
-      text: 'Watched S02E03 of Severance',
-      timestamp: _now.subtract(const Duration(days: 1)),
-      showId: 1,
-      episodeCode: 'S02E03',
-      showTitle: 'Severance',
-    ),
-    ActivityEvent(
-      id: '4',
-      type: ActivityType.added,
-      text: 'Added House of the Dragon to watchlist',
-      timestamp: _now.subtract(const Duration(days: 2)),
-    ),
-    ActivityEvent(
-      id: '5',
-      type: ActivityType.completed,
-      text: 'Finished watching The Bear — Season 2',
-      timestamp: _now.subtract(const Duration(days: 4)),
-    ),
-  ],
-  friendActivity: [
-    FriendActivity(
-      friendId: 'a1',
-      friendName: 'Alex',
-      friendAvatarUrl: null,
-      showTitle: 'The Bear',
-      episodeCode: 'S02E07',
-      timestamp: _now.subtract(const Duration(hours: 1)),
-      rating: 5.0,
-      review: 'This season is absolutely phenomenal. Every episode is better than the last.',
-      showId: 2,
-    ),
-    FriendActivity(
-      friendId: 'j1',
-      friendName: 'Jordan',
-      friendAvatarUrl: null,
-      showTitle: 'White Lotus',
-      episodeCode: 'S03E04',
-      timestamp: _now.subtract(const Duration(hours: 5)),
-      rating: 4.0,
-      showId: 3,
-    ),
-    FriendActivity(
-      friendId: 's1',
-      friendName: 'Sam',
-      friendAvatarUrl: null,
-      showTitle: 'Succession',
-      episodeCode: 'S04E09',
-      timestamp: _now.subtract(const Duration(days: 1)),
-      rating: 4.5,
-      review: '"Connor\'s Wedding" is one of the greatest TV episodes ever made.',
-      showId: 4,
-    ),
-  ],
-);
-
 final activityProvider =
     AsyncNotifierProvider<ActivityNotifier, ActivityData>(
   ActivityNotifier.new,
@@ -146,7 +133,25 @@ final activityProvider =
 class ActivityNotifier extends AsyncNotifier<ActivityData> {
   @override
   Future<ActivityData> build() async {
-    await Future.delayed(const Duration(milliseconds: 400));
-    return _mockActivity;
+    final api = ref.watch(apiClientProvider);
+    final myFuture =
+        api.get<Map<String, dynamic>>('/activity?size=20');
+    final friendsFuture =
+        api.get<Map<String, dynamic>>('/activity/friends?size=20');
+    final results = await Future.wait([myFuture, friendsFuture]);
+
+    final myContent = results[0]['content'] as List? ?? [];
+    final friendsContent = results[1]['content'] as List? ?? [];
+
+    final myActivity = myContent
+        .cast<Map<String, dynamic>>()
+        .map(ActivityEvent.fromJson)
+        .toList();
+    final friendActivity = friendsContent
+        .cast<Map<String, dynamic>>()
+        .map(FriendActivity.fromJson)
+        .toList();
+
+    return ActivityData(myActivity: myActivity, friendActivity: friendActivity);
   }
 }

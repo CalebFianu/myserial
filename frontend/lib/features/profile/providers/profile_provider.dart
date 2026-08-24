@@ -1,4 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/api/api_client.dart';
+import '../../../core/utils/tmdb_image.dart';
 
 class UserProfile {
   const UserProfile({
@@ -28,6 +30,35 @@ class UserProfile {
   final List<UserShow> watchedShows;
   final List<UserList> lists;
   final List<String?> watchlistPosters;
+
+  factory UserProfile.fromJson(Map<String, dynamic> json) {
+    return UserProfile(
+      id: json['id'].toString(),
+      name: json['name'] as String? ?? '',
+      handle: json['handle'] as String? ?? '',
+      avatarUrl: tmdbImage(json['avatarPath'] as String?),
+      bio: json['bio'] as String?,
+      episodeCount: json['episodeCount'] as int? ?? 0,
+      showCount: json['showCount'] as int? ?? 0,
+      avgRating: (json['avgRating'] as num?)?.toDouble(),
+      watchingShows: (json['watchingShows'] as List? ?? [])
+          .cast<Map<String, dynamic>>()
+          .map(UserShow.fromJson)
+          .toList(),
+      watchedShows: (json['watchedShows'] as List? ?? [])
+          .cast<Map<String, dynamic>>()
+          .map(UserShow.fromJson)
+          .toList(),
+      lists: (json['lists'] as List? ?? [])
+          .cast<Map<String, dynamic>>()
+          .map(UserList.fromJson)
+          .toList(),
+      watchlistPosters: (json['watchlistPosters'] as List? ?? [])
+          .cast<String?>()
+          .map((p) => tmdbImage(p))
+          .toList(),
+    );
+  }
 }
 
 class UserShow {
@@ -48,6 +79,16 @@ class UserShow {
   final int watchedEpisodes;
   final int totalEpisodes;
   final String? status;
+
+  factory UserShow.fromJson(Map<String, dynamic> json) => UserShow(
+        id: json['id'] as int? ?? 0,
+        title: json['title'] as String? ?? '',
+        posterUrl: tmdbImage(json['posterPath'] as String?),
+        progress: (json['progress'] as num?)?.toDouble() ?? 0.0,
+        watchedEpisodes: json['watchedEpisodes'] as int? ?? 0,
+        totalEpisodes: json['totalEpisodes'] as int? ?? 0,
+        status: json['status'] as String?,
+      );
 }
 
 class UserList {
@@ -64,6 +105,14 @@ class UserList {
   final String? description;
   final int showCount;
   final List<String?> posterUrls;
+
+  factory UserList.fromJson(Map<String, dynamic> json) => UserList(
+        id: json['id'].toString(),
+        name: json['name'] as String? ?? '',
+        description: null,
+        showCount: json['showCount'] as int? ?? 0,
+        posterUrls: const [],
+      );
 }
 
 class DiaryEntry {
@@ -82,6 +131,21 @@ class DiaryEntry {
   final DateTime watchedAt;
   final double? rating;
   final String? review;
+
+  factory DiaryEntry.fromJson(Map<String, dynamic> json) {
+    final ep = json['episode'] as Map<String, dynamic>? ?? {};
+    final sn = ep['seasonNumber'] as int? ?? 0;
+    final en = ep['episodeNumber'] as int? ?? 0;
+    return DiaryEntry(
+      id: json['id'].toString(),
+      showTitle: json['showTitle'] as String? ?? '',
+      episodeCode:
+          'S${sn.toString().padLeft(2, '0')}E${en.toString().padLeft(2, '0')}',
+      watchedAt: DateTime.parse(json['watchedAt'] as String),
+      rating: null,
+      review: null,
+    );
+  }
 }
 
 class UpNextItem {
@@ -102,70 +166,26 @@ class UpNextItem {
   final String episodeTitle;
   final String? airDate;
   final int? runtime;
+
+  factory UpNextItem.fromJson(Map<String, dynamic> json) {
+    final show = json['show'] as Map<String, dynamic>? ?? {};
+    final ep = json['nextEpisode'] as Map<String, dynamic>? ?? {};
+    final sn = ep['seasonNumber'] as int? ?? 0;
+    final en = ep['episodeNumber'] as int? ?? 0;
+    return UpNextItem(
+      showId: show['id'] as int? ?? 0,
+      showTitle: show['title'] as String? ?? '',
+      posterUrl: tmdbImage(show['posterPath'] as String?),
+      episodeCode:
+          'S${sn.toString().padLeft(2, '0')}E${en.toString().padLeft(2, '0')}',
+      episodeTitle: ep['name'] as String? ?? '',
+      airDate: ep['airDate'] as String?,
+      runtime: ep['runtime'] as int?,
+    );
+  }
 }
 
-// Mock data
-final _mockProfile = UserProfile(
-  id: 'u1',
-  name: 'Caleb Johnson',
-  handle: '@caleb',
-  bio: 'Peak TV enthusiast. I take my TV too seriously and I\'m not sorry about it.',
-  episodeCount: 1240,
-  showCount: 47,
-  avgRating: 3.8,
-  watchingShows: const [
-    UserShow(id: 1, title: 'Severance', progress: 0.63, watchedEpisodes: 12, totalEpisodes: 19),
-    UserShow(id: 2, title: 'The Bear', progress: 0.5, watchedEpisodes: 10, totalEpisodes: 20),
-    UserShow(id: 5, title: 'Slow Horses', progress: 0.83, watchedEpisodes: 25, totalEpisodes: 30),
-  ],
-  watchedShows: const [
-    UserShow(id: 3, title: 'Succession', progress: 1.0, watchedEpisodes: 39, totalEpisodes: 39, status: 'Ended'),
-    UserShow(id: 4, title: 'The Wire', progress: 1.0, watchedEpisodes: 60, totalEpisodes: 60, status: 'Ended'),
-    UserShow(id: 8, title: 'Fleabag', progress: 1.0, watchedEpisodes: 12, totalEpisodes: 12, status: 'Ended'),
-  ],
-  lists: const [
-    UserList(id: 'l1', name: 'Desert Island Picks', showCount: 8),
-    UserList(id: 'l2', name: 'Best Season Finales', showCount: 12),
-    UserList(id: 'l3', name: 'Watch with Partner', showCount: 5),
-  ],
-  watchlistPosters: const [null, null, null, null],
-);
-
-final _mockDiary = List.generate(20, (i) {
-  final now = DateTime.now();
-  return DiaryEntry(
-    id: 'entry_$i',
-    showTitle: ['Severance', 'The Bear', 'Succession', 'Slow Horses'][i % 4],
-    episodeCode: 'S0${(i % 3) + 1}E${(i % 10 + 1).toString().padLeft(2, '0')}',
-    watchedAt: now.subtract(Duration(days: i)),
-    rating: i % 3 == 0 ? null : 3.5 + (i % 5) * 0.5,
-  );
-});
-
-final _mockUpNext = const [
-  UpNextItem(
-    showId: 1,
-    showTitle: 'Severance',
-    episodeCode: 'S02E07',
-    episodeTitle: 'Chikhai Bardo',
-    airDate: 'Feb 28, 2025',
-    runtime: 52,
-  ),
-  UpNextItem(
-    showId: 2,
-    showTitle: 'The Bear',
-    episodeCode: 'S03E01',
-    episodeTitle: 'Tomorrow',
-    runtime: 38,
-  ),
-  UpNextItem(
-    showId: 5,
-    showTitle: 'Slow Horses',
-    episodeCode: 'S05E02',
-    episodeTitle: 'Dead Ends',
-    runtime: 46,
-  ),
-];
+// ── Providers ─────────────────────────────────────────────────────────────────
 
 final profileProvider =
     AsyncNotifierProvider<ProfileNotifier, UserProfile>(ProfileNotifier.new);
@@ -173,17 +193,40 @@ final profileProvider =
 class ProfileNotifier extends AsyncNotifier<UserProfile> {
   @override
   Future<UserProfile> build() async {
-    await Future.delayed(const Duration(milliseconds: 500));
-    return _mockProfile;
+    final api = ref.watch(apiClientProvider);
+    final data = await api.get<Map<String, dynamic>>('/profile/me');
+    return UserProfile.fromJson(data);
+  }
+
+  Future<void> updateProfile({String? name, String? bio}) async {
+    final api = ref.read(apiClientProvider);
+    await api.patch('/profile/me', data: {
+      if (name != null) 'name': name,
+      if (bio != null) 'bio': bio,
+    });
+    ref.invalidateSelf();
+  }
+
+  Future<void> refresh() async {
+    ref.invalidateSelf();
   }
 }
 
 final diaryProvider = FutureProvider<List<DiaryEntry>>((ref) async {
-  await Future.delayed(const Duration(milliseconds: 300));
-  return _mockDiary;
+  final api = ref.read(apiClientProvider);
+  final data = await api.get<Map<String, dynamic>>('/watch/diary?size=20');
+  final content = data['content'] as List? ?? [];
+  return content
+      .cast<Map<String, dynamic>>()
+      .map(DiaryEntry.fromJson)
+      .toList();
 });
 
 final upNextProvider = FutureProvider<List<UpNextItem>>((ref) async {
-  await Future.delayed(const Duration(milliseconds: 300));
-  return _mockUpNext;
+  final api = ref.read(apiClientProvider);
+  final data = await api.get<List<dynamic>>('/watch/up-next');
+  return data
+      .cast<Map<String, dynamic>>()
+      .map(UpNextItem.fromJson)
+      .toList();
 });

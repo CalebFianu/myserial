@@ -3,6 +3,7 @@ package com.myserial.api.controller;
 import com.myserial.api.dto.request.AddItemRequest;
 import com.myserial.api.dto.request.CollaboratorRequest;
 import com.myserial.api.dto.request.CreateListRequest;
+import com.myserial.api.dto.request.UpdateListRequest;
 import com.myserial.api.dto.response.UserListResponse;
 import com.myserial.domain.entity.UserList;
 import com.myserial.domain.service.ActivityService;
@@ -42,6 +43,26 @@ public class ListController extends BaseController {
         return ResponseEntity.ok(DtoMapper.toUserListResponse(list));
     }
 
+    @PutMapping("/{listId}")
+    public ResponseEntity<UserListResponse> updateList(@PathVariable Long listId,
+                                                       @Valid @RequestBody UpdateListRequest req) {
+        UserList list = listService.updateList(currentUserId(), listId, req.name(), req.note());
+        return ResponseEntity.ok(DtoMapper.toUserListResponse(list));
+    }
+
+    @DeleteMapping("/{listId}")
+    public ResponseEntity<Void> deleteList(@PathVariable Long listId) {
+        listService.deleteList(currentUserId(), listId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/watchlist")
+    public ResponseEntity<UserListResponse> getWatchlist() {
+        UserList watchlist = listService.getOrCreateWatchlist(currentUserId());
+        UserList loaded = listService.getList(watchlist.getId());
+        return ResponseEntity.ok(DtoMapper.toUserListResponse(loaded));
+    }
+
     @PostMapping("/{listId}/items")
     public ResponseEntity<Void> addItem(@PathVariable Long listId, @Valid @RequestBody AddItemRequest req) {
         Long userId = currentUserId();
@@ -60,5 +81,23 @@ public class ListController extends BaseController {
     public ResponseEntity<Void> addCollaborator(@PathVariable Long listId, @Valid @RequestBody CollaboratorRequest req) {
         listService.addCollaborator(currentUserId(), listId, req.userId());
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/watchlist/{showId}")
+    public ResponseEntity<Void> addToWatchlist(@PathVariable Long showId) {
+        listService.addToWatchlist(currentUserId(), showId);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/watchlist/{showId}")
+    public ResponseEntity<Void> removeFromWatchlist(@PathVariable Long showId) {
+        listService.removeFromWatchlist(currentUserId(), showId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/watchlist/check/{showId}")
+    public ResponseEntity<java.util.Map<String, Boolean>> checkWatchlist(@PathVariable Long showId) {
+        boolean inWatchlist = listService.isInWatchlist(currentUserId(), showId);
+        return ResponseEntity.ok(java.util.Map.of("inWatchlist", inWatchlist));
     }
 }

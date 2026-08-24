@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/api/api_client.dart';
 import '../../../core/providers/core_providers.dart';
 import '../../../design/colors.dart';
 import '../../../design/spacing.dart';
 import '../../../design/typography.dart';
+import '../../../features/auth/providers/auth_provider.dart';
 import '../../../shared/widgets/ms_avatar.dart';
 import '../../../shared/widgets/ms_badge.dart';
 import '../../../shared/widgets/ms_button.dart';
@@ -144,7 +146,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   label: 'Edit profile',
                   variant: MsButtonVariant.secondary,
                   fullWidth: true,
-                  onPressed: () {},
+                  onPressed: () => _showEditProfileDialog(profile),
                 ),
               ),
             ),
@@ -190,21 +192,38 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               ),
             ),
             const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.sp3)),
-            SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, i) {
-                  final shows = _showsTab == 0
-                      ? profile.watchingShows
-                      : profile.watchedShows;
-                  if (i >= shows.length) return null;
-                  final show = shows[i];
-                  return _ShowRow(show: show);
-                },
-                childCount: _showsTab == 0
-                    ? profile.watchingShows.length
-                    : profile.watchedShows.length,
+            if ((_showsTab == 0 ? profile.watchingShows : profile.watchedShows).isEmpty)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.pageGutter,
+                    vertical: AppSpacing.sp4,
+                  ),
+                  child: Text(
+                    _showsTab == 0
+                        ? 'No shows being watched yet.'
+                        : 'No completed shows yet.',
+                    style: AppTypography.body.copyWith(color: AppColors.fg3),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              )
+            else
+              SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, i) {
+                    final shows = _showsTab == 0
+                        ? profile.watchingShows
+                        : profile.watchedShows;
+                    if (i >= shows.length) return null;
+                    final show = shows[i];
+                    return _ShowRow(show: show);
+                  },
+                  childCount: _showsTab == 0
+                      ? profile.watchingShows.length
+                      : profile.watchedShows.length,
+                ),
               ),
-            ),
 
             const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.sp6)),
 
@@ -272,18 +291,44 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 padding: const EdgeInsets.symmetric(
                   horizontal: AppSpacing.pageGutter,
                 ),
-                child: Text('YOUR LISTS', style: AppTypography.overline),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text('YOUR LISTS', style: AppTypography.overline),
+                    ),
+                    GestureDetector(
+                      onTap: _showCreateListDialog,
+                      child: Icon(Icons.add_rounded,
+                          color: AppColors.signal, size: 22),
+                    ),
+                  ],
+                ),
               ),
             ),
             const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.sp3)),
-            SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, i) => _ListCard(
-                  list: profile.lists[i],
+            if (profile.lists.isEmpty)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.pageGutter,
+                    vertical: AppSpacing.sp3,
+                  ),
+                  child: Text(
+                    'No lists yet. Tap + to create one.',
+                    style: AppTypography.body.copyWith(color: AppColors.fg3),
+                    textAlign: TextAlign.center,
+                  ),
                 ),
-                childCount: profile.lists.length,
+              )
+            else
+              SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, i) => _ListCard(
+                    list: profile.lists[i],
+                  ),
+                  childCount: profile.lists.length,
+                ),
               ),
-            ),
 
             // Navigation links
             const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.sp4)),
@@ -316,11 +361,113 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               ),
             ),
 
+            const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.sp6)),
+
+            // Logout
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.pageGutter,
+                ),
+                child: MsButton(
+                  label: 'Log out',
+                  variant: MsButtonVariant.ghost,
+                  fullWidth: true,
+                  onPressed: () async {
+                    await ref.read(authProvider.notifier).logout();
+                    if (context.mounted) context.go('/');
+                  },
+                ),
+              ),
+            ),
+
             const SliverToBoxAdapter(
               child: SizedBox(height: AppSpacing.bottomContentPad),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showEditProfileDialog(UserProfile profile) {
+    final nameCtrl = TextEditingController(text: profile.name);
+    final bioCtrl = TextEditingController(text: profile.bio ?? '');
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: isDark ? AppColors.ink1 : AppColors.paper1,
+        title: Text('Edit profile', style: AppTypography.heading),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: nameCtrl,
+              decoration: const InputDecoration(labelText: 'Name'),
+            ),
+            const SizedBox(height: AppSpacing.sp3),
+            TextField(
+              controller: bioCtrl,
+              decoration: const InputDecoration(labelText: 'Bio'),
+              maxLines: 3,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              await ref.read(profileProvider.notifier).updateProfile(
+                    name: nameCtrl.text.trim(),
+                    bio: bioCtrl.text.trim(),
+                  );
+              if (ctx.mounted) Navigator.of(ctx).pop();
+            },
+            child: Text('Save',
+                style: TextStyle(color: AppColors.signal)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showCreateListDialog() {
+    final nameCtrl = TextEditingController();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: isDark ? AppColors.ink1 : AppColors.paper1,
+        title: Text('New list', style: AppTypography.heading),
+        content: TextField(
+          controller: nameCtrl,
+          autofocus: true,
+          decoration: const InputDecoration(hintText: 'List name'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              final name = nameCtrl.text.trim();
+              if (name.isEmpty) return;
+              final api = ref.read(apiClientProvider);
+              await api.post('/lists', data: {'name': name});
+              ref.read(profileProvider.notifier).refresh();
+              if (ctx.mounted) Navigator.of(ctx).pop();
+            },
+            child: Text('Create',
+                style: TextStyle(color: AppColors.signal)),
+          ),
+        ],
       ),
     );
   }
@@ -374,49 +521,52 @@ class _ShowRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.pageGutter,
-        0,
-        AppSpacing.pageGutter,
-        AppSpacing.sp3,
-      ),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 44,
-            child: PosterPlaceholder(
-              title: show.title,
-              imageUrl: show.posterUrl,
+    return GestureDetector(
+      onTap: () => context.push('/show/${show.id}'),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.pageGutter,
+          0,
+          AppSpacing.pageGutter,
+          AppSpacing.sp3,
+        ),
+        child: Row(
+          children: [
+            SizedBox(
+              width: 44,
+              child: PosterPlaceholder(
+                title: show.title,
+                imageUrl: show.posterUrl,
+              ),
             ),
-          ),
-          const SizedBox(width: AppSpacing.sp3),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(show.title, style: AppTypography.body),
-                if (show.totalEpisodes > 0) ...[
-                  const SizedBox(height: 4),
-                  ProgressBar(value: show.progress),
-                  const SizedBox(height: 2),
-                  Text(
-                    '${show.watchedEpisodes}/${show.totalEpisodes} episodes',
-                    style: AppTypography.micro,
-                  ),
+            const SizedBox(width: AppSpacing.sp3),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(show.title, style: AppTypography.body),
+                  if (show.totalEpisodes > 0) ...[
+                    const SizedBox(height: 4),
+                    ProgressBar(value: show.progress),
+                    const SizedBox(height: 2),
+                    Text(
+                      '${show.watchedEpisodes}/${show.totalEpisodes} episodes',
+                      style: AppTypography.micro,
+                    ),
+                  ],
                 ],
-              ],
+              ),
             ),
-          ),
-          if (show.status != null)
-            MsBadge(
-              label: show.status!,
-              variant: show.status == 'Ended'
-                  ? MsBadgeVariant.neutral
-                  : MsBadgeVariant.track,
-              small: true,
-            ),
-        ],
+            if (show.status != null)
+              MsBadge(
+                label: show.status!,
+                variant: show.status == 'Ended'
+                    ? MsBadgeVariant.neutral
+                    : MsBadgeVariant.track,
+                small: true,
+              ),
+          ],
+        ),
       ),
     );
   }

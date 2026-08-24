@@ -3,11 +3,14 @@ package com.myserial.domain.service;
 import com.myserial.domain.entity.*;
 import com.myserial.domain.repository.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Core show data service. Catalog fetching is delegated via ShowSyncPort
@@ -22,6 +25,7 @@ public class ShowService {
     private final EpisodeRepository episodeRepository;
     private final CreditRepository creditRepository;
     private final StreamingAvailabilityRepository streamingAvailabilityRepository;
+    private final WatchedEpisodeRepository watchedEpisodeRepository;
     private final ShowSyncPort showSyncPort;
 
     @Transactional
@@ -33,10 +37,10 @@ public class ShowService {
         return showSyncPort.fetchAndPersistShow(tmdbId);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public Show findById(Long id) {
         return showRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Show not found: " + id));
+                .orElseGet(() -> getOrFetchShow(id.intValue()));
     }
 
     @Transactional(readOnly = true)
@@ -76,6 +80,44 @@ public class ShowService {
         }
         return streamingAvailabilityRepository.findByShowId(showId);
     }
+
+    @Transactional(readOnly = true)
+    public List<Show> getPopular(int limit) {
+        return showRepository.findTopByOrderByPopularityDesc(PageRequest.of(0, limit));
+    }
+
+    @Transactional(readOnly = true)
+    public RecapResult getRecap(Long showId, Long userId, int chunkSize) {
+        List<Episode> episodes = episodeRepository.findByShowIdOrderBySeasonNumberAscEpisodeNumberAsc(showId);
+        long watchedCount = watchedEpisodeRepository.countByUserIdAndEpisodeShowId(userId, showId);
+
+        List<RecapChapter> chapters = new ArrayList<>();
+        int totalSoFar = 0;
+        for (int i = 0; i < episodes.size(); i += chunkSize) {
+            List<Episode> chunk = episodes.subList(i, Math.min(i + chunkSize, episodes.size()));
+            Episode first = chunk.get(0);
+            Episode last = chunk.get(chunk.size() - 1);
+            String range = String.format("S%02dE%02d\u2013S%02dE%02d",
+                    first.getSeasonNumber(), first.getEpisodeNumber(),
+                    last.getSeasonNumber(), last.getEpisodeNumber());
+            String title = chunk.size() == 1
+                    ? (first.getName() != null ? first.getName() : range)
+                    : String.format("Season %d, Episodes %d\u2013%d",
+                            first.getSeasonNumber(), first.getEpisodeNumber(), last.getEpisodeNumber());
+            String body = chunk.stream()
+                    .filter(ep -> ep.getOverview() != null && !ep.getOverview().isBlank())
+                    .map(ep -> ep.getName() + ": " + ep.getOverview())
+                    .collect(Collectors.joining("\n\n"));
+            if (body.isBlank()) body = "No overview available for this episode range.";
+            totalSoFar += chunk.size();
+            chapters.add(new RecapChapter(range, title, body, totalSoFar));
+        }
+
+        return new RecapResult(chapters, watchedCount);
+    }
+
+    public record RecapResult(List<RecapChapter> chapters, long watchedCount) {}
+    public record RecapChapter(String range, String title, String body, int unlockAfterEpisode) {}
 
     @Transactional
     public Show save(Show show) {

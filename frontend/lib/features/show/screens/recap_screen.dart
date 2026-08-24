@@ -7,50 +7,6 @@ import '../../../design/spacing.dart';
 import '../../../design/typography.dart';
 import '../providers/show_provider.dart';
 
-class _RecapChapter {
-  const _RecapChapter({
-    required this.range,
-    required this.title,
-    required this.body,
-    required this.isRead,
-  });
-  final String range;
-  final String title;
-  final String body;
-  final bool isRead;
-}
-
-// Mock recap data
-List<_RecapChapter> _buildChapters(int watchedCount) {
-  final all = [
-    _RecapChapter(
-      range: 'S01E01–02',
-      title: 'The Severance Procedure',
-      body: 'Mark S. joins Lumon Industries as a department head in Macrodata Refinement. He and his team — Dylan G., Irving B., and Helly R. — work with mysterious files, though they\'re never told what they actually do. Helly attempts to resign but is denied; she learns that only her innie can quit, and her outie can override that choice.',
-      isRead: watchedCount >= 2,
-    ),
-    _RecapChapter(
-      range: 'S01E03–04',
-      title: 'The Testing Floor',
-      body: 'The team discovers the testing floor and its disturbing rituals. Helly escalates her attempts to escape the severed floor. Irving grows obsessed with a mysterious corridor. Mark begins to suspect something is wrong with the program.',
-      isRead: watchedCount >= 4,
-    ),
-    _RecapChapter(
-      range: 'S01E05–06',
-      title: 'Goat Room & Jazz',
-      body: 'The team wins access to the Perpetuity Wing. Burt and Irving\'s relationship deepens. Dylan discovers a way to activate the overtime contingency. Outside Lumon, Mark\'s neighbor turns out to be his supervisor.',
-      isRead: watchedCount >= 6,
-    ),
-    _RecapChapter(
-      range: 'S01E07–09',
-      title: 'The We We Are',
-      body: 'Dylan activates overtime and the three innies briefly experience the outside world. Helly discovers she is Helena Eagan, the CEO\'s granddaughter. Mark learns his wife Gemma may be alive inside Lumon. The season ends with a shocking revelation about what Lumon is really doing.',
-      isRead: watchedCount >= 9,
-    ),
-  ];
-  return all;
-}
-
 class RecapScreen extends ConsumerStatefulWidget {
   const RecapScreen({super.key, required this.showId});
   final int showId;
@@ -64,20 +20,18 @@ class _RecapScreenState extends ConsumerState<RecapScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final showAsync = ref.watch(showDetailProvider(widget.showId));
+    final recapAsync = ref.watch(recapProvider(widget.showId));
     final topPad = MediaQuery.paddingOf(context).top;
 
     return Scaffold(
       backgroundColor: AppColors.ink0,
-      body: showAsync.when(
+      body: recapAsync.when(
         loading: () => const Center(
           child: CircularProgressIndicator(color: AppColors.signal),
         ),
         error: (_, __) =>
             const Center(child: Text('Error loading recap')),
-        data: (show) {
-          final chapters = _buildChapters(show.watchedEpisodeCount);
-
+        data: (recapData) {
           return CustomScrollView(
             slivers: [
               SliverToBoxAdapter(
@@ -100,7 +54,7 @@ class _RecapScreenState extends ConsumerState<RecapScreen> {
                                 size: 18, color: AppColors.fg3),
                             const SizedBox(width: 4),
                             Text(
-                              show.title,
+                              'Back',
                               style: AppTypography.caption
                                   .copyWith(color: AppColors.fg3),
                             ),
@@ -126,13 +80,19 @@ class _RecapScreenState extends ConsumerState<RecapScreen> {
 
               SliverList(
                 delegate: SliverChildBuilderDelegate(
-                  (context, i) => _ChapterCard(
-                    chapter: chapters[i],
-                    index: i,
-                    isRevealed: _revealed.contains(i),
-                    onReveal: () => setState(() => _revealed.add(i)),
-                  ),
-                  childCount: chapters.length,
+                  (context, i) {
+                    final chapter = recapData.chapters[i];
+                    final isLocked = chapter.unlockAfterEpisode >
+                            recapData.watchedCount &&
+                        !_revealed.contains(i);
+                    return _ChapterCard(
+                      chapter: chapter,
+                      index: i,
+                      isLocked: isLocked,
+                      onReveal: () => setState(() => _revealed.add(i)),
+                    );
+                  },
+                  childCount: recapData.chapters.length,
                 ),
               ),
 
@@ -151,19 +111,17 @@ class _ChapterCard extends StatelessWidget {
   const _ChapterCard({
     required this.chapter,
     required this.index,
-    required this.isRevealed,
+    required this.isLocked,
     required this.onReveal,
   });
 
-  final _RecapChapter chapter;
+  final RecapChapter chapter;
   final int index;
-  final bool isRevealed;
+  final bool isLocked;
   final VoidCallback onReveal;
 
   @override
   Widget build(BuildContext context) {
-    final isLocked = !chapter.isRead && !isRevealed;
-
     return Padding(
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.pageGutter,
@@ -183,7 +141,6 @@ class _ChapterCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Range label
                 Text(
                   chapter.range,
                   style: AppTypography.micro.copyWith(
@@ -202,7 +159,6 @@ class _ChapterCard extends StatelessWidget {
             ),
           ),
 
-          // Blur overlay for unread
           if (isLocked)
             Positioned.fill(
               child: GestureDetector(

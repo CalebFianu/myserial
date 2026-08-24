@@ -15,7 +15,8 @@ public final class DtoMapper {
 
     public static UserResponse toUserResponse(User user) {
         return new UserResponse(user.getId(), user.getName(), user.getEmail(),
-                user.getHandle(), user.getBio(), user.getAvatarPath(), user.getCreatedAt());
+                user.getHandle(), user.getBio(), user.getAvatarPath(),
+                user.getOnboardingCompleted(), user.getCreatedAt());
     }
 
     public static ShowSummaryResponse toShowSummaryResponse(Show show) {

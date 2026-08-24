@@ -9,6 +9,7 @@ import '../../../shared/widgets/ms_badge.dart';
 import '../../../shared/widgets/ms_button.dart';
 import '../../../shared/widgets/poster_placeholder.dart';
 import '../../../shared/widgets/rating_stars.dart';
+import '../../lists/widgets/add_to_list_sheet.dart';
 import '../providers/show_provider.dart';
 
 class ShowDetailScreen extends ConsumerWidget {
@@ -196,18 +197,23 @@ class _ShowDetailContent extends StatelessWidget {
                     ] else ...[
                       Expanded(
                         child: show.isInWatchlist
-                            ? Row(
-                                children: [
-                                  Icon(Icons.check_rounded,
-                                      color: AppColors.track, size: 16),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    'In your watchlist',
-                                    style: AppTypography.caption.copyWith(
-                                      color: AppColors.track,
+                            ? GestureDetector(
+                                onTap: () => ref
+                                    .read(showDetailProvider(show.id).notifier)
+                                    .toggleWatchlist(),
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.check_rounded,
+                                        color: AppColors.track, size: 16),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      'In your watchlist',
+                                      style: AppTypography.caption.copyWith(
+                                        color: AppColors.track,
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               )
                             : MsButton(
                                 label: 'Add to watchlist',
@@ -222,6 +228,19 @@ class _ShowDetailContent extends StatelessWidget {
                               ),
                       ),
                     ],
+                    const SizedBox(width: AppSpacing.sp2),
+                    MsButton(
+                      label: '',
+                      variant: MsButtonVariant.secondary,
+                      size: MsButtonSize.sm,
+                      leading: const Icon(
+                          Icons.playlist_add_rounded, size: 16),
+                      onPressed: () => AddToListSheet.show(
+                        context,
+                        showId: show.id,
+                        showTitle: show.title,
+                      ),
+                    ),
                   ],
                 ),
               ],

@@ -5,12 +5,17 @@ import com.myserial.domain.entity.EpisodeRating;
 import com.myserial.domain.entity.User;
 import com.myserial.domain.repository.EpisodeRatingRepository;
 import com.myserial.domain.repository.EpisodeRepository;
+import com.myserial.domain.repository.FriendshipRepository;
 import com.myserial.domain.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,6 +26,7 @@ public class RatingService {
     private final EpisodeRatingRepository ratingRepository;
     private final EpisodeRepository episodeRepository;
     private final UserRepository userRepository;
+    private final FriendshipRepository friendshipRepository;
 
     @Transactional
     public EpisodeRating upsertRating(Long userId, Long episodeId, BigDecimal score, String review) {
@@ -60,5 +66,24 @@ public class RatingService {
     @Transactional(readOnly = true)
     public List<EpisodeRating> getAllRatings(Long userId) {
         return ratingRepository.findByUserId(userId);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<EpisodeRating> getFriendReviews(Long userId, Pageable pageable) {
+        List<Long> friendIds = friendshipRepository.findByUserId(userId).stream()
+                .map(f -> f.getFriend().getId())
+                .toList();
+        if (friendIds.isEmpty()) {
+            return Page.empty(pageable);
+        }
+        List<EpisodeRating> all = new ArrayList<>();
+        for (Long friendId : friendIds) {
+            all.addAll(ratingRepository.findByUserId(friendId));
+        }
+        all.sort((a, b) -> b.getUpdatedAt().compareTo(a.getUpdatedAt()));
+        int start = (int) pageable.getOffset();
+        int end = Math.min(start + pageable.getPageSize(), all.size());
+        List<EpisodeRating> pageContent = start >= all.size() ? List.of() : all.subList(start, end);
+        return new PageImpl<>(pageContent, pageable, all.size());
     }
 }

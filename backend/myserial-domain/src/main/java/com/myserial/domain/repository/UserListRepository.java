@@ -19,4 +19,6 @@ public interface UserListRepository extends JpaRepository<UserList, Long> {
     Optional<UserList> findByIdWithItems(@Param("id") Long id);
 
     Optional<UserList> findByUserIdAndIsWatchlistTrue(Long userId);
+
+    List<UserList> findByUserIdAndIsWatchlistFalseOrderByCreatedAtDesc(Long userId);
 }

@@ -23,4 +23,10 @@ public class ActivityController extends BaseController {
         Page<ActivityEvent> page = activityService.getFeed(currentUserId(), pageable);
         return ResponseEntity.ok(page.map(DtoMapper::toActivityEventResponse));
     }
+
+    @GetMapping("/friends")
+    public ResponseEntity<Page<ActivityEventResponse>> getFriendsFeed(Pageable pageable) {
+        Page<ActivityEvent> page = activityService.getFriendsFeed(currentUserId(), pageable);
+        return ResponseEntity.ok(page.map(DtoMapper::toActivityEventResponse));
+    }
 }

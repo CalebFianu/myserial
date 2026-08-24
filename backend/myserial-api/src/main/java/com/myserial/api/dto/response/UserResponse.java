@@ -9,5 +9,6 @@ public record UserResponse(
         String handle,
         String bio,
         String avatarPath,
+        Boolean onboardingCompleted,
         OffsetDateTime createdAt
 ) {}

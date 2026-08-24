@@ -4,12 +4,12 @@ import com.myserial.api.dto.request.LoginRequest;
 import com.myserial.api.dto.request.RefreshRequest;
 import com.myserial.api.dto.request.RegisterRequest;
 import com.myserial.api.dto.response.TokenResponse;
+import com.myserial.api.dto.response.UserResponse;
 import com.myserial.api.exception.ConflictException;
 import com.myserial.api.exception.UnauthorizedException;
 import com.myserial.api.security.JwtUtil;
 import com.myserial.domain.entity.RefreshToken;
 import com.myserial.domain.entity.User;
-import com.myserial.domain.repository.RefreshTokenRepository;
 import com.myserial.domain.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -23,12 +23,11 @@ import java.time.OffsetDateTime;
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
-public class AuthController {
+public class AuthController extends BaseController {
 
     private final UserService userService;
     private final JwtUtil jwtUtil;
     private final BCryptPasswordEncoder passwordEncoder;
-    private final RefreshTokenRepository refreshTokenRepository;
 
     @PostMapping("/register")
     public ResponseEntity<TokenResponse> register(@Valid @RequestBody RegisterRequest req) {
@@ -56,36 +55,39 @@ public class AuthController {
 
     @PostMapping("/refresh")
     public ResponseEntity<TokenResponse> refresh(@Valid @RequestBody RefreshRequest req) {
-        RefreshToken stored = refreshTokenRepository.findByToken(req.refreshToken())
+        RefreshToken stored = userService.findRefreshToken(req.refreshToken())
                 .orElseThrow(() -> new UnauthorizedException("Invalid refresh token"));
         if (stored.getExpiresAt().isBefore(OffsetDateTime.now())) {
-            refreshTokenRepository.delete(stored);
+            userService.deleteRefreshToken(stored);
             throw new UnauthorizedException("Refresh token expired");
         }
         User user = stored.getUser();
-        refreshTokenRepository.delete(stored);
+        userService.deleteRefreshToken(stored);
         return ResponseEntity.ok(buildTokenResponse(user));
     }
 
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(@Valid @RequestBody RefreshRequest req) {
-        refreshTokenRepository.findByToken(req.refreshToken())
-                .ifPresent(refreshTokenRepository::delete);
+        userService.deleteRefreshTokenByRawToken(req.refreshToken());
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<UserResponse> me() {
+        return ResponseEntity.ok(DtoMapper.toUserResponse(currentUser()));
+    }
+
+    @PostMapping("/onboarding-complete")
+    public ResponseEntity<UserResponse> completeOnboarding() {
+        User user = userService.completeOnboarding(currentUserId());
+        return ResponseEntity.ok(DtoMapper.toUserResponse(user));
     }
 
     private TokenResponse buildTokenResponse(User user) {
         String accessToken = jwtUtil.createAccessToken(user.getId(), user.getEmail());
         String rawRefreshToken = jwtUtil.createRefreshToken(user.getId(), user.getEmail());
-
-        RefreshToken refreshToken = RefreshToken.builder()
-                .user(user)
-                .token(rawRefreshToken)
-                .expiresAt(OffsetDateTime.now().plusSeconds(jwtUtil.getRefreshTokenExpiry()))
-                .build();
-        refreshTokenRepository.save(refreshToken);
-
-        UserResponse userResponse = DtoMapper.toUserResponse(user);
-        return new TokenResponse(accessToken, rawRefreshToken, userResponse);
+        userService.saveRefreshToken(user, rawRefreshToken,
+                OffsetDateTime.now().plusSeconds(jwtUtil.getRefreshTokenExpiry()));
+        return new TokenResponse(accessToken, rawRefreshToken, DtoMapper.toUserResponse(user));
     }
 }

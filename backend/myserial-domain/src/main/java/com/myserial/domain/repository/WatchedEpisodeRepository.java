@@ -23,6 +23,8 @@ public interface WatchedEpisodeRepository extends JpaRepository<WatchedEpisode, 
     @Query("SELECT we FROM WatchedEpisode we JOIN FETCH we.episode e JOIN FETCH e.show WHERE we.user.id = :userId ORDER BY we.watchedAt DESC")
     Page<WatchedEpisode> findByUserIdOrderByWatchedAtDesc(@Param("userId") Long userId, Pageable pageable);
 
+    long countByUserId(Long userId);
+
     boolean existsByUserIdAndEpisodeId(Long userId, Long episodeId);
 
     @Query("SELECT SUM(COALESCE(we.episode.runtime, 0)) FROM WatchedEpisode we WHERE we.user.id = :userId")

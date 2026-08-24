@@ -4,7 +4,6 @@ import com.myserial.domain.entity.BingeTrack;
 import com.myserial.domain.entity.Show;
 import com.myserial.domain.entity.User;
 import com.myserial.domain.repository.BingeTrackRepository;
-import com.myserial.domain.repository.ShowRepository;
 import com.myserial.domain.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,15 +18,16 @@ public class BingeService {
 
     private final BingeTrackRepository bingeTrackRepository;
     private final UserRepository userRepository;
-    private final ShowRepository showRepository;
+    private final ShowService showService;
 
     @Transactional
     public BingeTrack trackShow(Long userId, Long showId) {
-        if (bingeTrackRepository.existsByUserIdAndShowId(userId, showId)) {
-            return bingeTrackRepository.findByUserIdAndShowId(userId, showId).orElseThrow();
+        Show show = showService.findById(showId);
+        Long resolvedShowId = show.getId();
+        if (bingeTrackRepository.existsByUserIdAndShowId(userId, resolvedShowId)) {
+            return bingeTrackRepository.findByUserIdAndShowId(userId, resolvedShowId).orElseThrow();
         }
         User user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
-        Show show = showRepository.findById(showId).orElseThrow(() -> new IllegalArgumentException("Show not found"));
         BingeTrack track = BingeTrack.builder()
                 .user(user)
                 .show(show)

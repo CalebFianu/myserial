@@ -24,5 +24,7 @@ public record ShowDetailResponse(
         List<SeasonResponse> seasons,
         List<CastMemberResponse> castPreview,
         List<CrewMemberResponse> crewPreview,
-        List<StreamingProviderResponse> streamingAvailability
+        List<StreamingProviderResponse> streamingAvailability,
+        boolean isInWatchlist,
+        long watchedEpisodeCount
 ) {}

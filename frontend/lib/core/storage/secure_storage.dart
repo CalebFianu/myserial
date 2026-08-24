@@ -28,11 +28,14 @@ class SecureStorageService {
     required String refreshToken,
     String? userId,
   }) async {
-    await Future.wait([
-      _storage.write(key: _kAccessToken, value: accessToken),
-      _storage.write(key: _kRefreshToken, value: refreshToken),
-      if (userId != null) _storage.write(key: _kUserId, value: userId),
-    ]);
+    // Write sequentially — flutter_secure_storage on web generates an
+    // encryption key on the first write. Concurrent writes race to create
+    // different keys, leaving earlier values undecryptable.
+    await _storage.write(key: _kAccessToken, value: accessToken);
+    await _storage.write(key: _kRefreshToken, value: refreshToken);
+    if (userId != null) {
+      await _storage.write(key: _kUserId, value: userId);
+    }
   }
 
   Future<void> clearTokens() async {

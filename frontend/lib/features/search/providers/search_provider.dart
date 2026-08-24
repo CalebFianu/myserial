@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/api/api_client.dart';
+import '../../../core/utils/tmdb_image.dart';
 
 // ── Models ────────────────────────────────────────────────────────────────────
 
@@ -22,6 +23,23 @@ class ShowResult {
   final String? status;
   final String? overview;
   final double? voteAverage;
+
+  factory ShowResult.fromJson(Map<String, dynamic> json) {
+    final firstAirDate = json['firstAirDate'] as String?;
+    final year =
+        (firstAirDate != null && firstAirDate.length >= 4)
+            ? firstAirDate.substring(0, 4)
+            : null;
+    return ShowResult(
+      id: json['id'] ?? json['tmdbId'] ?? 0,
+      title: json['title'] as String? ?? '',
+      posterUrl: tmdbImage(json['posterPath'] as String?),
+      year: year,
+      status: json['status'] as String?,
+      overview: json['overview'] as String?,
+      voteAverage: (json['voteAverage'] as num?)?.toDouble(),
+    );
+  }
 }
 
 class PersonResult {
@@ -72,23 +90,6 @@ class SearchState {
       );
 }
 
-// Mock results
-List<ShowResult> _mockShowResults(String q) => [
-      ShowResult(id: 1, title: 'Breaking Bad', year: '2008', status: 'Ended', overview: 'A chemistry teacher turned drug lord.', voteAverage: 4.5),
-      ShowResult(id: 2, title: 'Better Call Saul', year: '2015', status: 'Ended', overview: 'Prequel to Breaking Bad.', voteAverage: 4.3),
-      ShowResult(id: 3, title: 'The Wire', year: '2002', status: 'Ended', overview: 'Baltimore crime drama.', voteAverage: 4.8),
-      ShowResult(id: 4, title: 'Succession', year: '2018', status: 'Ended', overview: 'A powerful family fights for control.', voteAverage: 4.6),
-      ShowResult(id: 5, title: 'Severance', year: '2022', status: 'Returning', overview: 'Work-life balance taken to an extreme.', voteAverage: 4.7),
-      ShowResult(id: 6, title: 'The Bear', year: '2022', status: 'Returning', overview: 'A chef returns to run his family restaurant.', voteAverage: 4.5),
-    ].where((s) => q.isEmpty || s.title.toLowerCase().contains(q.toLowerCase())).toList();
-
-List<PersonResult> _mockPeopleResults(String q) => [
-      PersonResult(id: 1, name: 'Bryan Cranston', knownFor: 'Breaking Bad'),
-      PersonResult(id: 2, name: 'Jeremy Allen White', knownFor: 'The Bear'),
-      PersonResult(id: 3, name: 'Sarah Snook', knownFor: 'Succession'),
-      PersonResult(id: 4, name: 'Adam Scott', knownFor: 'Severance'),
-    ].where((p) => q.isEmpty || p.name.toLowerCase().contains(q.toLowerCase())).toList();
-
 // ── Provider ──────────────────────────────────────────────────────────────────
 
 final searchProvider =
@@ -101,7 +102,7 @@ class SearchNotifier extends StateNotifier<SearchState> {
   final Ref _ref;
 
   void setQuery(String query) {
-    state = state.copyWith(query: query, isLoading: true);
+    state = state.copyWith(query: query, isLoading: query.isNotEmpty);
     _debounce(query);
   }
 
@@ -110,11 +111,11 @@ class SearchNotifier extends StateNotifier<SearchState> {
     final now = DateTime.now();
     _lastSearch = now;
     await Future.delayed(const Duration(milliseconds: 350));
-    if (_lastSearch != now) return; // superseded
-    _search(query);
+    if (_lastSearch != now) return;
+    await _search(query);
   }
 
-  void _search(String query) {
+  Future<void> _search(String query) async {
     if (query.isEmpty) {
       state = state.copyWith(
         showResults: [],
@@ -123,16 +124,28 @@ class SearchNotifier extends StateNotifier<SearchState> {
       );
       return;
     }
-    // Mock — replace with API call
-    state = state.copyWith(
-      showResults: _mockShowResults(query),
-      peopleResults: _mockPeopleResults(query),
-      isLoading: false,
-    );
+    try {
+      final api = _ref.read(apiClientProvider);
+      final data = await api.get<Map<String, dynamic>>(
+        '/shows/search',
+        queryParameters: {'q': query},
+      );
+      final content = data['content'] as List? ?? [];
+      final showResults = content
+          .cast<Map<String, dynamic>>()
+          .map(ShowResult.fromJson)
+          .toList();
+      state = state.copyWith(
+        showResults: showResults,
+        peopleResults: const [],
+        isLoading: false,
+      );
+    } catch (_) {
+      state = state.copyWith(showResults: [], isLoading: false);
+    }
   }
 
   void setTab(SearchTab tab) => state = state.copyWith(tab: tab);
 
-  void toggleLayout() =>
-      state = state.copyWith(isGrid: !state.isGrid);
+  void toggleLayout() => state = state.copyWith(isGrid: !state.isGrid);
 }

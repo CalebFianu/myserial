@@ -40,6 +40,10 @@ public class User implements UserDetails {
     @Column(name = "avatar_path", length = 500)
     private String avatarPath;
 
+    @Column(name = "onboarding_completed", nullable = false)
+    @Builder.Default
+    private Boolean onboardingCompleted = false;
+
     @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;
 

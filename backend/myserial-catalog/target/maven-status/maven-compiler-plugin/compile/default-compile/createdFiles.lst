@@ -1,0 +1,12 @@
+com\myserial\catalog\dto\SeasonDetail.class
+com\myserial\catalog\dto\ShowSummary.class
+com\myserial\catalog\dto\CastMember.class
+com\myserial\catalog\dto\ShowDetail.class
+com\myserial\catalog\tmdb\TmdbCatalogProvider.class
+com\myserial\catalog\tmdb\TmdbConfig.class
+com\myserial\catalog\dto\EpisodeDetail.class
+com\myserial\catalog\tmdb\TmdbProperties.class
+com\myserial\catalog\ShowSyncAdapter.class
+com\myserial\catalog\CatalogProvider.class
+com\myserial\catalog\dto\CrewMember.class
+com\myserial\catalog\dto\WatchProviderInfo.class

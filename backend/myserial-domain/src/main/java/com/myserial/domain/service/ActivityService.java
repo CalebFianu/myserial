@@ -19,6 +19,7 @@ public class ActivityService {
     private final ShowRepository showRepository;
     private final EpisodeRepository episodeRepository;
     private final UserListRepository listRepository;
+    private final FriendshipRepository friendshipRepository;
 
     @Transactional
     public ActivityEvent log(Long userId, String eventType, Long showId, Long episodeId, Long listId, String metadata) {
@@ -44,7 +45,10 @@ public class ActivityService {
     }
 
     @Transactional(readOnly = true)
-    public Page<ActivityEvent> getFriendFeed(List<Long> friendIds, Pageable pageable) {
+    public Page<ActivityEvent> getFriendsFeed(Long userId, Pageable pageable) {
+        List<Long> friendIds = friendshipRepository.findByUserId(userId).stream()
+                .map(f -> f.getFriend().getId())
+                .toList();
         if (friendIds.isEmpty()) {
             return Page.empty(pageable);
         }
