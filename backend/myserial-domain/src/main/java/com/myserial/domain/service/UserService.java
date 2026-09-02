@@ -28,14 +28,27 @@ public class UserService {
         if (userRepository.existsByEmail(email)) {
             throw new IllegalStateException("Email already in use: " + email);
         }
-        if (userRepository.existsByHandle(handle)) {
-            throw new IllegalStateException("Handle already taken: " + handle);
+
+        String resolvedHandle = handle;
+        if (resolvedHandle == null || resolvedHandle.isBlank()) {
+            resolvedHandle = email.split("@")[0].replaceAll("[^a-zA-Z0-9_]", "");
+            if (resolvedHandle.length() < 2) {
+                resolvedHandle = "user_" + resolvedHandle;
+            }
         }
+        if (userRepository.existsByHandle(resolvedHandle)) {
+            int suffix = 1;
+            while (userRepository.existsByHandle(resolvedHandle + suffix)) {
+                suffix++;
+            }
+            resolvedHandle = resolvedHandle + suffix;
+        }
+
         User user = User.builder()
                 .name(name)
                 .email(email)
                 .passwordHash(rawPassword != null ? passwordEncoder.encode(rawPassword) : null)
-                .handle(handle)
+                .handle(resolvedHandle)
                 .build();
         user = userRepository.save(user);
 
@@ -66,6 +79,11 @@ public class UserService {
     public User loadByHandle(String handle) {
         return userRepository.findByHandle(handle)
                 .orElseThrow(() -> new IllegalArgumentException("User not found with handle: " + handle));
+    }
+
+    @Transactional(readOnly = true)
+    public boolean existsByHandle(String handle) {
+        return userRepository.existsByHandle(handle);
     }
 
     @Transactional

@@ -87,6 +87,7 @@ class ListsNotifier extends AsyncNotifier<List<ListDetail>> {
     final created = ListDetail.fromJson(data);
     final current = state.valueOrNull ?? [];
     state = AsyncData([created, ...current]);
+    ref.invalidate(profileProvider);
     return created;
   }
 
@@ -101,6 +102,7 @@ class ListsNotifier extends AsyncNotifier<List<ListDetail>> {
     state = AsyncData(
       current.map((l) => l.id == listId ? updated : l).toList(),
     );
+    ref.invalidate(profileProvider);
   }
 
   Future<void> deleteList(String listId) async {
@@ -112,6 +114,7 @@ class ListsNotifier extends AsyncNotifier<List<ListDetail>> {
 
     try {
       await api.delete('/lists/$listId');
+      ref.invalidate(profileProvider);
     } catch (_) {
       // Revert
       state = AsyncData(current);
@@ -123,6 +126,7 @@ class ListsNotifier extends AsyncNotifier<List<ListDetail>> {
     final api = ref.read(apiClientProvider);
     await api.post('/lists/$listId/items', data: {'showId': showId});
     ref.invalidateSelf();
+    ref.invalidate(profileProvider);
   }
 
   Future<void> removeItem(String listId, int showId) async {
@@ -139,6 +143,7 @@ class ListsNotifier extends AsyncNotifier<List<ListDetail>> {
 
     try {
       await api.delete('/lists/$listId/items/$showId');
+      ref.invalidate(profileProvider);
     } catch (_) {
       state = AsyncData(current);
       rethrow;
@@ -173,8 +178,9 @@ class ListDetailNotifier extends FamilyAsyncNotifier<ListDetail?, String> {
 
     try {
       await api.delete('/lists/${current.id}/items/$showId');
-      // Also update the parent lists provider
+      // Also update the parent lists provider and profile
       ref.invalidate(listsProvider);
+      ref.invalidate(profileProvider);
     } catch (_) {
       state = AsyncData(current);
       rethrow;
@@ -189,5 +195,6 @@ class ListDetailNotifier extends FamilyAsyncNotifier<ListDetail?, String> {
     await api.post('/lists/${current.id}/items', data: {'showId': showId});
     ref.invalidateSelf();
     ref.invalidate(listsProvider);
+    ref.invalidate(profileProvider);
   }
 }

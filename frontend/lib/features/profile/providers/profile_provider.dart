@@ -15,6 +15,7 @@ class UserProfile {
     this.watchingShows = const [],
     this.watchedShows = const [],
     this.lists = const [],
+    this.watchlistCount = 0,
     this.watchlistPosters = const [],
   });
 
@@ -29,9 +30,16 @@ class UserProfile {
   final List<UserShow> watchingShows;
   final List<UserShow> watchedShows;
   final List<UserList> lists;
+  final int watchlistCount;
   final List<String?> watchlistPosters;
 
   factory UserProfile.fromJson(Map<String, dynamic> json) {
+    final posters = (json['watchlistPosters'] as List? ?? [])
+        .cast<String?>()
+        .map((p) => tmdbImage(p))
+        .toList();
+    final count = (json['watchlistCount'] as num?)?.toInt() ?? posters.length;
+
     return UserProfile(
       id: json['id'].toString(),
       name: json['name'] as String? ?? '',
@@ -53,10 +61,8 @@ class UserProfile {
           .cast<Map<String, dynamic>>()
           .map(UserList.fromJson)
           .toList(),
-      watchlistPosters: (json['watchlistPosters'] as List? ?? [])
-          .cast<String?>()
-          .map((p) => tmdbImage(p))
-          .toList(),
+      watchlistCount: count,
+      watchlistPosters: posters,
     );
   }
 }
@@ -185,7 +191,7 @@ class UpNextItem {
   }
 }
 
-// ── Providers ─────────────────────────────────────────────────────────────────
+// ── Providers ────────────────────────────────────────────────────────────────
 
 final profileProvider =
     AsyncNotifierProvider<ProfileNotifier, UserProfile>(ProfileNotifier.new);

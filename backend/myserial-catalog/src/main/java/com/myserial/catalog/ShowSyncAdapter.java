@@ -11,7 +11,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -31,6 +33,54 @@ public class ShowSyncAdapter implements ShowSyncPort {
     public Show fetchAndPersistShow(int tmdbId) {
         ShowDetail detail = catalogProvider.fetchShowWithSeasonsAndCredits(tmdbId);
         return persistShowDetail(detail);
+    }
+
+    @Override
+    @Transactional
+    public List<Show> searchAndSeedShows(String query, int limit) {
+        List<ShowSummary> summaries = catalogProvider.searchShows(query, "en-US");
+        if (summaries == null || summaries.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<Show> seededShows = new ArrayList<>();
+        int count = 0;
+        for (ShowSummary summary : summaries) {
+            if (limit > 0 && count >= limit) {
+                break;
+            }
+            try {
+                Optional<Show> existing = showRepository.findByTmdbId(summary.tmdbId());
+                if (existing.isPresent() && existing.get().getLastSyncedAt() != null) {
+                    seededShows.add(existing.get());
+                } else {
+                    Show seeded = fetchAndPersistShow(summary.tmdbId());
+                    seededShows.add(seeded);
+                }
+                count++;
+            } catch (Exception e) {
+                log.warn("Failed to seed show tmdbId={} ('{}') from TMDB: {}", summary.tmdbId(), summary.title(), e.getMessage());
+                try {
+                    Show stub = showRepository.findByTmdbId(summary.tmdbId()).orElse(new Show());
+                    stub.setTmdbId(summary.tmdbId());
+                    stub.setTitle(summary.title());
+                    stub.setOriginalTitle(summary.originalTitle());
+                    stub.setOverview(summary.overview());
+                    stub.setPosterPath(summary.posterPath());
+                    stub.setBackdropPath(summary.backdropPath());
+                    stub.setFirstAirDate(summary.firstAirDate());
+                    stub.setVoteAverage(summary.voteAverage());
+                    stub.setPopularity(summary.popularity());
+                    stub.setStatus(summary.status());
+                    Show savedStub = showRepository.save(stub);
+                    seededShows.add(savedStub);
+                    count++;
+                } catch (Exception ex) {
+                    log.error("Failed to save fallback stub for tmdbId={}: {}", summary.tmdbId(), ex.getMessage());
+                }
+            }
+        }
+        return seededShows;
     }
 
     @Transactional

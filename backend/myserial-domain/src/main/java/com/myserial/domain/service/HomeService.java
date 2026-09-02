@@ -4,12 +4,11 @@ import com.myserial.domain.entity.*;
 import com.myserial.domain.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.List;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -20,28 +19,51 @@ public class HomeService {
     private final EpisodeRepository episodeRepository;
     private final ActivityEventRepository activityEventRepository;
     private final FriendshipRepository friendshipRepository;
+    private final ShowRepository showRepository;
     private final WatchService watchService;
 
     @Transactional(readOnly = true)
     public HomeData getHomeData(Long userId) {
-        List<BingeTrack> tracks = bingeTrackRepository.findByUserId(userId);
+        // Find distinct shows user has logged episodes for, ordered by most recent watch date DESC
+        List<Long> watchedShowIds = watchedEpisodeRepository.findDistinctShowIdsOrderByLatestWatchedAtDesc(userId);
+        Set<Long> showIdSet = new LinkedHashSet<>(watchedShowIds);
 
-        List<MyShow> myShows = tracks.stream()
-                .map(t -> new MyShow(t.getShow()))
+        // Also include tracked shows
+        List<BingeTrack> tracks = bingeTrackRepository.findByUserId(userId);
+        for (BingeTrack t : tracks) {
+            showIdSet.add(t.getShow().getId());
+        }
+
+        List<Show> userShows = new ArrayList<>();
+        for (Long showId : showIdSet) {
+            showRepository.findById(showId).ifPresent(userShows::add);
+        }
+
+        List<MyShow> myShows = userShows.stream()
+                .map(MyShow::new)
                 .toList();
 
-        List<WatchService.UpNextResult> upNextResults = watchService.getUpNext(userId);
-
+        // Determine most recently logged / continue watching show
         ContinueWatching continueWatching = null;
-        for (WatchService.UpNextResult r : upNextResults) {
-            long watched = watchedEpisodeRepository.countByUserIdAndEpisodeShowId(userId, r.show().getId());
-            if (watched > 0) {
-                long total = episodeRepository.countByShowId(r.show().getId());
-                double progress = total > 0 ? (double) watched / total : 0.0;
-                continueWatching = new ContinueWatching(r.show(), r.nextEpisode(), watched, total, progress);
+        for (Show show : userShows) {
+            long watched = watchedEpisodeRepository.countByUserIdAndEpisodeShowId(userId, show.getId());
+            long total = episodeRepository.countByShowId(show.getId());
+            double progress = total > 0 ? (double) watched / total : 0.0;
+
+            List<Episode> allEpisodes = episodeRepository.findByShowIdOrderBySeasonNumberAscEpisodeNumberAsc(show.getId());
+            Set<Long> watchedIds = watchedEpisodeRepository.findEpisodeIdsByUserIdAndShowId(userId, show.getId());
+            Episode nextOrLatest = allEpisodes.stream()
+                    .filter(ep -> !watchedIds.contains(ep.getId()))
+                    .findFirst()
+                    .orElse(allEpisodes.isEmpty() ? null : allEpisodes.get(allEpisodes.size() - 1));
+
+            if (nextOrLatest != null) {
+                continueWatching = new ContinueWatching(show, nextOrLatest, watched, total, progress);
                 break;
             }
         }
+
+        List<WatchService.UpNextResult> upNextResults = watchService.getUpNext(userId);
 
         List<BingeReady> bingeReady = tracks.stream()
                 .map(t -> {

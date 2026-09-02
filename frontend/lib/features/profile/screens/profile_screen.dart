@@ -40,351 +40,363 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         ),
         error: (_, __) =>
             Center(child: Text('Error', style: AppTypography.body)),
-        data: (profile) => CustomScrollView(
-          slivers: [
-            // Header
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: EdgeInsets.fromLTRB(
-                  AppSpacing.pageGutter,
-                  topPad + AppSpacing.sp4,
-                  AppSpacing.pageGutter,
-                  0,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        MsAvatar(
-                          name: profile.name,
-                          imageUrl: profile.avatarUrl,
-                          size: 64,
-                          ringColor: AppColors.signal,
-                          ringWidth: 2,
+        data: (profile) => RefreshIndicator(
+          color: AppColors.signal,
+          onRefresh: () => ref.read(profileProvider.notifier).refresh(),
+          child: CustomScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            slivers: [
+              // Header
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    AppSpacing.pageGutter,
+                    topPad + AppSpacing.sp4,
+                    AppSpacing.pageGutter,
+                    0,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          MsAvatar(
+                            name: profile.name,
+                            imageUrl: profile.avatarUrl,
+                            size: 64,
+                            ringColor: AppColors.signal,
+                            ringWidth: 2,
+                          ),
+                          const Spacer(),
+                          // Theme toggle
+                          IconButton(
+                            onPressed: () => ref
+                                .read(themeModeProvider.notifier)
+                                .toggle(),
+                            icon: Icon(
+                              themeMode == ThemeMode.dark
+                                  ? Icons.light_mode_outlined
+                                  : Icons.dark_mode_outlined,
+                              color: isDark ? AppColors.fg2 : AppColors.lightFg2,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: AppSpacing.sp3),
+                      Text(profile.name, style: AppTypography.title),
+                      Text(
+                        profile.handle,
+                        style: AppTypography.caption.copyWith(
+                          color: AppColors.fg3,
                         ),
-                        const Spacer(),
-                        // Theme toggle
-                        IconButton(
-                          onPressed: () => ref
-                              .read(themeModeProvider.notifier)
-                              .toggle(),
-                          icon: Icon(
-                            themeMode == ThemeMode.dark
-                                ? Icons.light_mode_outlined
-                                : Icons.dark_mode_outlined,
+                      ),
+                      if (profile.bio != null) ...[
+                        const SizedBox(height: AppSpacing.sp3),
+                        Text(
+                          profile.bio!,
+                          style: AppTypography.body.copyWith(
                             color: isDark ? AppColors.fg2 : AppColors.lightFg2,
                           ),
                         ),
                       ],
-                    ),
-                    const SizedBox(height: AppSpacing.sp3),
-                    Text(profile.name, style: AppTypography.title),
-                    Text(
-                      profile.handle,
-                      style: AppTypography.caption.copyWith(
-                        color: AppColors.fg3,
+                    ],
+                  ),
+                ),
+              ),
+
+              const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.sp4)),
+
+              // 3-up stat cards moved from homepage (Up Next, Diary, Stats)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.pageGutter,
+                  ),
+                  child: Row(
+                    children: [
+                      _InteractiveStatCard(
+                        label: 'Up Next',
+                        value: '${profile.watchingShows.length}',
+                        icon: Icons.play_circle_outline_rounded,
+                        onTap: () => context.push('/profile/up-next'),
                       ),
-                    ),
-                    if (profile.bio != null) ...[
-                      const SizedBox(height: AppSpacing.sp3),
-                      Text(
-                        profile.bio!,
-                        style: AppTypography.body.copyWith(
-                          color: isDark ? AppColors.fg2 : AppColors.lightFg2,
+                      const SizedBox(width: AppSpacing.sp3),
+                      _InteractiveStatCard(
+                        label: 'Diary',
+                        value: '${profile.episodeCount}',
+                        icon: Icons.book_outlined,
+                        onTap: () => context.push('/profile/diary'),
+                      ),
+                      const SizedBox(width: AppSpacing.sp3),
+                      _InteractiveStatCard(
+                        label: 'Stats',
+                        value: profile.avgRating != null
+                            ? profile.avgRating!.toStringAsFixed(1)
+                            : '→',
+                        icon: Icons.bar_chart_rounded,
+                        onTap: () => context.push('/profile/stats'),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.sp3)),
+
+              // Detailed summary stats (Episodes, Shows, Avg rating)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.pageGutter,
+                  ),
+                  child: Row(
+                    children: [
+                      _StatCard(
+                        label: 'Episodes',
+                        value: '${profile.episodeCount}',
+                      ),
+                      const SizedBox(width: AppSpacing.sp3),
+                      _StatCard(
+                        label: 'Shows',
+                        value: '${profile.showCount}',
+                      ),
+                      const SizedBox(width: AppSpacing.sp3),
+                      _StatCard(
+                        label: 'Avg rating',
+                        value: profile.avgRating != null
+                            ? profile.avgRating!.toStringAsFixed(1)
+                            : '—',
+                        valueColor: profile.avgRating != null
+                            ? AppColors.star
+                            : null,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.sp4)),
+
+              // Edit profile button
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.pageGutter,
+                  ),
+                  child: MsButton(
+                    label: 'Edit profile',
+                    variant: MsButtonVariant.secondary,
+                    fullWidth: true,
+                    onPressed: () => _showEditProfileDialog(profile),
+                  ),
+                ),
+              ),
+
+              const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.sp6)),
+
+              // My Shows
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.pageGutter,
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text('MY SHOWS', style: AppTypography.overline),
+                      ),
+                      // Up Next link
+                      TextButton(
+                        onPressed: () => context.push('/profile/up-next'),
+                        child: Text(
+                          'Up next →',
+                          style: AppTypography.caption.copyWith(
+                            color: AppColors.info,
+                          ),
                         ),
                       ),
                     ],
-                  ],
+                  ),
                 ),
               ),
-            ),
-
-            const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.sp4)),
-
-            // Stat cards
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.pageGutter,
-                ),
-                child: Row(
-                  children: [
-                    _StatCard(
-                      label: 'Episodes',
-                      value: '${profile.episodeCount}',
-                    ),
-                    const SizedBox(width: AppSpacing.sp3),
-                    _StatCard(
-                      label: 'Shows',
-                      value: '${profile.showCount}',
-                    ),
-                    const SizedBox(width: AppSpacing.sp3),
-                    _StatCard(
-                      label: 'Avg rating',
-                      value: profile.avgRating != null
-                          ? profile.avgRating!.toStringAsFixed(1)
-                          : '—',
-                      valueColor: profile.avgRating != null
-                          ? AppColors.star
-                          : null,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.sp4)),
-
-            // Edit profile button
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.pageGutter,
-                ),
-                child: MsButton(
-                  label: 'Edit profile',
-                  variant: MsButtonVariant.secondary,
-                  fullWidth: true,
-                  onPressed: () => _showEditProfileDialog(profile),
-                ),
-              ),
-            ),
-
-            const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.sp6)),
-
-            // My Shows
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.pageGutter,
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text('MY SHOWS', style: AppTypography.overline),
-                    ),
-                    // Up Next link
-                    TextButton(
-                      onPressed: () => context.push('/profile/up-next'),
-                      child: Text(
-                        'Up next →',
-                        style: AppTypography.caption.copyWith(
-                          color: AppColors.info,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.sp3)),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.pageGutter,
-                ),
-                child: SegmentedControl(
-                  options: const ['Watching', 'Watched'],
-                  selectedIndex: _showsTab,
-                  onChanged: (i) => setState(() => _showsTab = i),
-                ),
-              ),
-            ),
-            const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.sp3)),
-            if ((_showsTab == 0 ? profile.watchingShows : profile.watchedShows).isEmpty)
+              const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.sp3)),
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: AppSpacing.pageGutter,
-                    vertical: AppSpacing.sp4,
                   ),
-                  child: Text(
-                    _showsTab == 0
-                        ? 'No shows being watched yet.'
-                        : 'No completed shows yet.',
-                    style: AppTypography.body.copyWith(color: AppColors.fg3),
-                    textAlign: TextAlign.center,
+                  child: SegmentedControl(
+                    options: const ['Watching', 'Watched'],
+                    selectedIndex: _showsTab,
+                    onChanged: (i) => setState(() => _showsTab = i),
                   ),
-                ),
-              )
-            else
-              SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, i) {
-                    final shows = _showsTab == 0
-                        ? profile.watchingShows
-                        : profile.watchedShows;
-                    if (i >= shows.length) return null;
-                    final show = shows[i];
-                    return _ShowRow(show: show);
-                  },
-                  childCount: _showsTab == 0
-                      ? profile.watchingShows.length
-                      : profile.watchedShows.length,
                 ),
               ),
-
-            const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.sp6)),
-
-            // Watchlist
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.pageGutter,
-                ),
-                child: GestureDetector(
-                  onTap: () => context.push('/lists'),
-                  child: Container(
-                    padding: const EdgeInsets.all(AppSpacing.sp4),
-                    decoration: BoxDecoration(
-                      color: isDark ? AppColors.ink1 : AppColors.paper1,
-                      borderRadius: AppRadius.cardRR,
-                      border: Border.all(
-                        color: isDark ? AppColors.inkLine : AppColors.paperLine,
-                      ),
+              const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.sp3)),
+              if ((_showsTab == 0 ? profile.watchingShows : profile.watchedShows).isEmpty)
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.pageGutter,
+                      vertical: AppSpacing.sp4,
                     ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Watchlist',
-                                  style: AppTypography.cardTitle),
-                              Text(
-                                '${profile.watchlistPosters.length} shows',
-                                style: AppTypography.caption,
-                              ),
-                            ],
+                    child: Text(
+                      _showsTab == 0
+                          ? 'No shows being watched yet.'
+                          : 'No completed shows yet.',
+                      style: AppTypography.body.copyWith(color: AppColors.fg3),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                )
+              else
+                SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, i) {
+                      final shows = _showsTab == 0
+                          ? profile.watchingShows
+                          : profile.watchedShows;
+                      if (i >= shows.length) return null;
+                      final show = shows[i];
+                      return _ShowRow(show: show);
+                    },
+                    childCount: _showsTab == 0
+                        ? profile.watchingShows.length
+                        : profile.watchedShows.length,
+                  ),
+                ),
+
+              const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.sp6)),
+
+              // Watchlist
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.pageGutter,
+                  ),
+                  child: GestureDetector(
+                    onTap: () => context.push('/lists'),
+                    child: Container(
+                      padding: const EdgeInsets.all(AppSpacing.sp4),
+                      decoration: BoxDecoration(
+                        color: isDark ? AppColors.ink1 : AppColors.paper1,
+                        borderRadius: AppRadius.cardRR,
+                        border: Border.all(
+                          color: isDark ? AppColors.inkLine : AppColors.paperLine,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Watchlist',
+                                    style: AppTypography.cardTitle),
+                                Text(
+                                  '${profile.watchlistCount} show${profile.watchlistCount == 1 ? '' : 's'}',
+                                  style: AppTypography.caption,
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                        // Mini poster rail
-                        Row(
-                          children: profile.watchlistPosters.take(3).map((url) {
-                            return Container(
-                              width: 32,
-                              height: 48,
-                              margin: const EdgeInsets.only(left: 4),
-                              child: PosterPlaceholder(
-                                imageUrl: url,
-                                radius: 4,
-                              ),
-                            );
-                          }).toList(),
-                        ),
-                        const SizedBox(width: AppSpacing.sp2),
-                        Icon(Icons.chevron_right_rounded,
-                            color: AppColors.fg3, size: 18),
-                      ],
+                          // Mini poster rail
+                          if (profile.watchlistPosters.isNotEmpty)
+                            Row(
+                              children: profile.watchlistPosters.take(3).map((url) {
+                                return Container(
+                                  width: 32,
+                                  height: 48,
+                                  margin: const EdgeInsets.only(left: 4),
+                                  child: PosterPlaceholder(
+                                    imageUrl: url,
+                                    radius: 4,
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                          const SizedBox(width: AppSpacing.sp2),
+                          Icon(Icons.chevron_right_rounded,
+                              color: AppColors.fg3, size: 18),
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
 
-            const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.sp6)),
+              const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.sp6)),
 
-            // YOUR LISTS
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.pageGutter,
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text('YOUR LISTS', style: AppTypography.overline),
-                    ),
-                    GestureDetector(
-                      onTap: _showCreateListDialog,
-                      child: Icon(Icons.add_rounded,
-                          color: AppColors.signal, size: 22),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.sp3)),
-            if (profile.lists.isEmpty)
+              // YOUR LISTS
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: AppSpacing.pageGutter,
-                    vertical: AppSpacing.sp3,
                   ),
-                  child: Text(
-                    'No lists yet. Tap + to create one.',
-                    style: AppTypography.body.copyWith(color: AppColors.fg3),
-                    textAlign: TextAlign.center,
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text('YOUR LISTS', style: AppTypography.overline),
+                      ),
+                      GestureDetector(
+                        onTap: _showCreateListDialog,
+                        child: Icon(Icons.add_rounded,
+                            color: AppColors.signal, size: 22),
+                      ),
+                    ],
                   ),
                 ),
-              )
-            else
-              SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, i) => _ListCard(
-                    list: profile.lists[i],
+              ),
+              const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.sp3)),
+              if (profile.lists.isEmpty)
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.pageGutter,
+                      vertical: AppSpacing.sp3,
+                    ),
+                    child: Text(
+                      'No lists yet. Tap + to create one.',
+                      style: AppTypography.body.copyWith(color: AppColors.fg3),
+                      textAlign: TextAlign.center,
+                    ),
                   ),
-                  childCount: profile.lists.length,
+                )
+              else
+                SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, i) => _ListCard(
+                      list: profile.lists[i],
+                    ),
+                    childCount: profile.lists.length,
+                  ),
+                ),
+
+              const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.sp6)),
+
+              // Logout
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.pageGutter,
+                  ),
+                  child: MsButton(
+                    label: 'Log out',
+                    variant: MsButtonVariant.ghost,
+                    fullWidth: true,
+                    onPressed: () async {
+                      await ref.read(authProvider.notifier).logout();
+                      if (context.mounted) context.go('/');
+                    },
+                  ),
                 ),
               ),
 
-            // Navigation links
-            const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.sp4)),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.pageGutter,
-                ),
-                child: Wrap(
-                  spacing: AppSpacing.sp3,
-                  runSpacing: AppSpacing.sp3,
-                  children: [
-                    _LinkButton(
-                      icon: Icons.calendar_today_outlined,
-                      label: 'Diary',
-                      onTap: () => context.push('/profile/diary'),
-                    ),
-                    _LinkButton(
-                      icon: Icons.bar_chart_rounded,
-                      label: 'Stats',
-                      onTap: () => context.push('/profile/stats'),
-                    ),
-                    _LinkButton(
-                      icon: Icons.play_circle_outline_rounded,
-                      label: 'Up Next',
-                      onTap: () => context.push('/profile/up-next'),
-                    ),
-                  ],
-                ),
+              const SliverToBoxAdapter(
+                child: SizedBox(height: AppSpacing.bottomContentPad),
               ),
-            ),
-
-            const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.sp6)),
-
-            // Logout
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.pageGutter,
-                ),
-                child: MsButton(
-                  label: 'Log out',
-                  variant: MsButtonVariant.ghost,
-                  fullWidth: true,
-                  onPressed: () async {
-                    await ref.read(authProvider.notifier).logout();
-                    if (context.mounted) context.go('/');
-                  },
-                ),
-              ),
-            ),
-
-            const SliverToBoxAdapter(
-              child: SizedBox(height: AppSpacing.bottomContentPad),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -473,7 +485,71 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 }
 
-// ── Sub-widgets ───────────────────────────────────────────────────────────────
+// ── Sub-widgets ─────────────────────────────────────────────────────────────
+
+class _InteractiveStatCard extends StatefulWidget {
+  const _InteractiveStatCard({
+    required this.label,
+    required this.value,
+    required this.icon,
+    required this.onTap,
+  });
+  final String label;
+  final String value;
+  final IconData icon;
+  final VoidCallback onTap;
+
+  @override
+  State<_InteractiveStatCard> createState() => _InteractiveStatCardState();
+}
+
+class _InteractiveStatCardState extends State<_InteractiveStatCard> {
+  bool _pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Expanded(
+      child: GestureDetector(
+        onTapDown: (_) => setState(() => _pressed = true),
+        onTapUp: (_) {
+          setState(() => _pressed = false);
+          widget.onTap();
+        },
+        onTapCancel: () => setState(() => _pressed = false),
+        child: AnimatedScale(
+          scale: _pressed ? 0.97 : 1.0,
+          duration: const Duration(milliseconds: 140),
+          child: Container(
+            padding: const EdgeInsets.all(AppSpacing.sp3),
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.ink1 : AppColors.paper1,
+              borderRadius: AppRadius.cardRR,
+              border: Border.all(
+                color: isDark ? AppColors.inkLine : AppColors.paperLine,
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(widget.icon, size: 18, color: AppColors.signal),
+                const SizedBox(height: 6),
+                Text(
+                  widget.value,
+                  style: AppTypography.heading,
+                ),
+                Text(
+                  widget.label,
+                  style: AppTypography.micro,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 class _StatCard extends StatelessWidget {
   const _StatCard({
@@ -614,49 +690,6 @@ class _ListCard extends StatelessWidget {
               Icon(Icons.chevron_right_rounded, color: AppColors.fg3, size: 18),
             ],
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _LinkButton extends StatelessWidget {
-  const _LinkButton({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-  });
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.sp4,
-          vertical: AppSpacing.sp2,
-        ),
-        decoration: BoxDecoration(
-          color: isDark ? AppColors.ink2 : AppColors.paper1,
-          borderRadius: AppRadius.pillRR,
-          border: Border.all(
-            color: isDark ? AppColors.inkLine : AppColors.paperLine,
-          ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 14, color: AppColors.fg2),
-            const SizedBox(width: 6),
-            Text(
-              label,
-              style: AppTypography.caption.copyWith(color: AppColors.fg2),
-            ),
-          ],
         ),
       ),
     );

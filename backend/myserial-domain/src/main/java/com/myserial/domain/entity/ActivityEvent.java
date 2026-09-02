@@ -2,6 +2,8 @@ package com.myserial.domain.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.OffsetDateTime;
 
@@ -37,6 +39,7 @@ public class ActivityEvent {
     @JoinColumn(name = "list_id")
     private UserList list;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     private String metadata;
 

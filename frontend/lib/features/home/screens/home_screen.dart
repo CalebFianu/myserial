@@ -108,63 +108,49 @@ class _HomeContent extends StatelessWidget {
 
         const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.sp5)),
 
-        // 3-up stat grid
+        // MY SHOWS Section Header
         SliverToBoxAdapter(
           child: Padding(
             padding: const EdgeInsets.symmetric(
               horizontal: AppSpacing.pageGutter,
             ),
             child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _StatCard(
-                  label: 'Up Next',
-                  value: '${data.upNextCount}',
-                  icon: Icons.play_circle_outline_rounded,
-                  onTap: () => context.push('/profile/up-next'),
+                Text(
+                  'MY SHOWS',
+                  style: AppTypography.overline,
                 ),
-                const SizedBox(width: AppSpacing.sp3),
-                _StatCard(
-                  label: 'Diary',
-                  value: '${data.diaryCount}',
-                  icon: Icons.book_outlined,
-                  onTap: () => context.push('/profile/diary'),
-                ),
-                const SizedBox(width: AppSpacing.sp3),
-                _StatCard(
-                  label: 'Stats',
-                  value: '→',
-                  icon: Icons.bar_chart_rounded,
-                  onTap: () => context.push('/profile/stats'),
+                GestureDetector(
+                  onTap: () => context.go('/profile'),
+                  child: Text(
+                    'View all \u2192',
+                    style: AppTypography.caption.copyWith(
+                      color: AppColors.info,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
               ],
             ),
           ),
         ),
 
-        const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.sp6)),
+        const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.sp3)),
 
-        // Continue watching
+        // Most recently logged show card (if exists) or empty state
         if (data.continueWatching != null)
           SliverToBoxAdapter(
-            child: _ContinueWatchingCard(item: data.continueWatching!),
-          ),
-
-        const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.sp6)),
-
-        // Your Shows
-        if (data.myShows.isNotEmpty) ...[
+            child: _MostRecentShowCard(item: data.continueWatching!),
+          )
+        else if (data.myShows.isEmpty)
           SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.pageGutter,
-              ),
-              child: Text(
-                'YOUR SHOWS',
-                style: AppTypography.overline,
-              ),
-            ),
+            child: _EmptyMyShowsCard(),
           ),
-          const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.sp3)),
+
+        // If there are watched / watching shows, display the rail in order of most recently logged
+        if (data.myShows.isNotEmpty) ...[
+          const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.sp4)),
           SliverToBoxAdapter(
             child: PosterRail(
               items: data.myShows
@@ -176,8 +162,9 @@ class _HomeContent extends StatelessWidget {
                   .toList(),
             ),
           ),
-          const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.sp6)),
         ],
+
+        const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.sp6)),
 
         // Binge Ready
         SliverToBoxAdapter(
@@ -192,7 +179,7 @@ class _HomeContent extends StatelessWidget {
                 ),
                 GestureDetector(
                   onTap: () {
-                    // Show track sheet
+                    context.go('/search');
                   },
                   child: Icon(
                     Icons.add_circle_outline_rounded,
@@ -297,74 +284,10 @@ class _HomeContent extends StatelessWidget {
   }
 }
 
-// ── Sub-widgets ───────────────────────────────────────────────────────────────
+// ── Sub-widgets ─────────────────────────────────────────────────────────────
 
-class _StatCard extends StatefulWidget {
-  const _StatCard({
-    required this.label,
-    required this.value,
-    required this.icon,
-    required this.onTap,
-  });
-  final String label;
-  final String value;
-  final IconData icon;
-  final VoidCallback onTap;
-
-  @override
-  State<_StatCard> createState() => _StatCardState();
-}
-
-class _StatCardState extends State<_StatCard> {
-  bool _pressed = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Expanded(
-      child: GestureDetector(
-        onTapDown: (_) => setState(() => _pressed = true),
-        onTapUp: (_) {
-          setState(() => _pressed = false);
-          widget.onTap();
-        },
-        onTapCancel: () => setState(() => _pressed = false),
-        child: AnimatedScale(
-          scale: _pressed ? 0.97 : 1.0,
-          duration: const Duration(milliseconds: 140),
-          child: Container(
-            padding: const EdgeInsets.all(AppSpacing.sp3),
-            decoration: BoxDecoration(
-              color: isDark ? AppColors.ink1 : AppColors.paper1,
-              borderRadius: AppRadius.cardRR,
-              border: Border.all(
-                color: isDark ? AppColors.inkLine : AppColors.paperLine,
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(widget.icon, size: 18, color: AppColors.signal),
-                const SizedBox(height: 6),
-                Text(
-                  widget.value,
-                  style: AppTypography.heading,
-                ),
-                Text(
-                  widget.label,
-                  style: AppTypography.micro,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _ContinueWatchingCard extends StatelessWidget {
-  const _ContinueWatchingCard({required this.item});
+class _MostRecentShowCard extends StatelessWidget {
+  const _MostRecentShowCard({required this.item});
   final ContinueWatchingItem item;
 
   @override
@@ -372,88 +295,153 @@ class _ContinueWatchingCard extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.pageGutter),
-      child: Container(
-        decoration: BoxDecoration(
-          color: isDark ? AppColors.ink1 : AppColors.paper1,
-          borderRadius: AppRadius.cardRR,
-          border: Border.all(
-            color: isDark ? AppColors.inkLine : AppColors.paperLine,
+      child: GestureDetector(
+        onTap: () => context.push('/show/${item.showId}'),
+        child: Container(
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.ink1 : AppColors.paper1,
+            borderRadius: AppRadius.cardRR,
+            border: Border.all(
+              color: isDark ? AppColors.inkLine : AppColors.paperLine,
+            ),
+          ),
+          child: Row(
+            children: [
+              // Poster
+              ClipRRect(
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(AppRadius.card),
+                  bottomLeft: Radius.circular(AppRadius.card),
+                ),
+                child: SizedBox(
+                  width: 80,
+                  height: 100,
+                  child: PosterPlaceholder(
+                    title: item.showTitle,
+                    imageUrl: item.posterUrl,
+                    aspectRatio: 80 / 100,
+                    radius: 0,
+                  ),
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sp3),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: AppSpacing.sp3,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              item.showTitle,
+                              style: AppTypography.cardTitle,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(right: AppSpacing.sp3),
+                            child: MsBadge(
+                              label: 'Recent',
+                              variant: MsBadgeVariant.signal,
+                              small: true,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 2),
+                      Row(
+                        children: [
+                          Text(
+                            item.episodeCode,
+                            style: AppTypography.codeStyle.copyWith(
+                              color: AppColors.signal,
+                              fontSize: 12,
+                            ),
+                          ),
+                          if (item.episodeTitle.isNotEmpty)
+                            Expanded(
+                              child: Text(
+                                ' \u00b7 ${item.episodeTitle}',
+                                style: AppTypography.caption.copyWith(
+                                  color: isDark
+                                      ? AppColors.fg2
+                                      : AppColors.lightFg2,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: AppSpacing.sp3),
+                      ProgressBar(value: item.progress),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${item.watchedCount}/${item.totalCount} episodes',
+                        style: AppTypography.micro,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(right: AppSpacing.sp3),
+                child: Icon(
+                  Icons.play_circle_filled_rounded,
+                  color: AppColors.signal,
+                  size: 36,
+                ),
+              ),
+            ],
           ),
         ),
-        child: Row(
-          children: [
-            // Poster
-            ClipRRect(
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(AppRadius.card),
-                bottomLeft: Radius.circular(AppRadius.card),
-              ),
-              child: SizedBox(
-                width: 80,
-                height: 100,
-                child: PosterPlaceholder(
-                  title: item.showTitle,
-                  imageUrl: item.posterUrl,
-                  aspectRatio: 80 / 100,
-                  radius: 0,
-                ),
-              ),
+      ),
+    );
+  }
+}
+
+class _EmptyMyShowsCard extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.pageGutter),
+      child: GestureDetector(
+        onTap: () => context.go('/search'),
+        child: Container(
+          padding: const EdgeInsets.all(AppSpacing.sp4),
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.ink1 : AppColors.paper1,
+            borderRadius: AppRadius.cardRR,
+            border: Border.all(
+              color: isDark ? AppColors.inkLine : AppColors.paperLine,
             ),
-            const SizedBox(width: AppSpacing.sp3),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  vertical: AppSpacing.sp3,
-                ),
+          ),
+          child: Row(
+            children: [
+              Icon(Icons.tv_outlined, color: AppColors.signal, size: 32),
+              const SizedBox(width: AppSpacing.sp3),
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      item.showTitle,
-                      style: AppTypography.cardTitle,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                    Text('No shows logged yet', style: AppTypography.cardTitle),
                     const SizedBox(height: 2),
-                    Row(
-                      children: [
-                        Text(
-                          item.episodeCode,
-                          style: AppTypography.codeStyle.copyWith(
-                            color: AppColors.signal,
-                            fontSize: 12,
-                          ),
-                        ),
-                        Text(
-                          ' · ${item.episodeTitle}',
-                          style: AppTypography.caption.copyWith(
-                            color: isDark
-                                ? AppColors.fg2
-                                : AppColors.lightFg2,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: AppSpacing.sp3),
-                    ProgressBar(value: item.progress),
-                    const SizedBox(height: 4),
                     Text(
-                      '${item.watchedCount}/${item.totalCount} episodes',
-                      style: AppTypography.micro,
+                      'Search and log what you are watching',
+                      style: AppTypography.caption,
                     ),
                   ],
                 ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(right: AppSpacing.sp3),
-              child: Icon(
-                Icons.play_circle_filled_rounded,
-                color: AppColors.signal,
-                size: 36,
-              ),
-            ),
-          ],
+              Icon(Icons.chevron_right_rounded, color: AppColors.fg3, size: 20),
+            ],
+          ),
         ),
       ),
     );
@@ -563,7 +551,9 @@ class _EmptyBingeCard extends StatelessWidget {
             MsButton(
               label: 'Track a show',
               variant: MsButtonVariant.secondary,
-              onPressed: () {},
+              onPressed: () {
+                context.go('/search');
+              },
             ),
           ],
         ),
@@ -572,7 +562,7 @@ class _EmptyBingeCard extends StatelessWidget {
   }
 }
 
-// ── Skeleton ──────────────────────────────────────────────────────────────────
+// ── Skeleton ────────────────────────────────────────────────────────────────
 
 class _HomeSkeleton extends StatefulWidget {
   const _HomeSkeleton();
@@ -604,6 +594,7 @@ class _HomeSkeletonState extends State<_HomeSkeleton>
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return AnimatedBuilder(
       animation: _anim,
       builder: (context, _) {
@@ -620,29 +611,19 @@ class _HomeSkeletonState extends State<_HomeSkeleton>
             children: [
               _Bone(width: 120, height: 22, opacity: opacity),
               const SizedBox(height: AppSpacing.sp5),
+              _Bone(width: double.infinity, height: 100, opacity: opacity),
+              const SizedBox(height: AppSpacing.sp6),
+              _Bone(width: 100, height: 16, opacity: opacity),
+              const SizedBox(height: AppSpacing.sp3),
               Row(
                 children: [
-                  _Bone(
-                      width: double.infinity,
-                      height: 80,
-                      opacity: opacity,
-                      flex: true),
+                  _Bone(width: 90, height: 135, opacity: opacity),
                   const SizedBox(width: AppSpacing.sp3),
-                  _Bone(
-                      width: double.infinity,
-                      height: 80,
-                      opacity: opacity,
-                      flex: true),
+                  _Bone(width: 90, height: 135, opacity: opacity),
                   const SizedBox(width: AppSpacing.sp3),
-                  _Bone(
-                      width: double.infinity,
-                      height: 80,
-                      opacity: opacity,
-                      flex: true),
+                  _Bone(width: 90, height: 135, opacity: opacity),
                 ],
               ),
-              const SizedBox(height: AppSpacing.sp6),
-              _Bone(width: double.infinity, height: 100, opacity: opacity),
             ],
           ),
         );

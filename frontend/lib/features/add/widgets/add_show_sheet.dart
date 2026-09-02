@@ -4,11 +4,12 @@ import '../../../core/api/api_client.dart';
 import '../../../design/colors.dart';
 import '../../../design/spacing.dart';
 import '../../../design/typography.dart';
+import '../../../features/lists/providers/lists_provider.dart';
+import '../../../features/profile/providers/profile_provider.dart';
 import '../../../features/search/providers/search_provider.dart';
 import '../../../features/show/providers/show_provider.dart';
 import '../../../shared/widgets/ms_button.dart';
 import '../../../shared/widgets/ms_chip.dart';
-import '../../../shared/widgets/ms_sheet.dart';
 import '../../../shared/widgets/poster_placeholder.dart';
 import '../../../shared/widgets/segmented_control.dart';
 
@@ -23,7 +24,6 @@ class AddShowSheet extends ConsumerStatefulWidget {
 
 class _AddShowSheetState extends ConsumerState<AddShowSheet> {
   final _searchCtrl = TextEditingController();
-  String _query = '';
   int? _selectedShowId;
   String? _selectedShowTitle;
   String? _selectedShowPosterUrl;
@@ -35,9 +35,8 @@ class _AddShowSheetState extends ConsumerState<AddShowSheet> {
   @override
   void initState() {
     super.initState();
-    if (widget.initialQuery != null) {
+    if (widget.initialQuery != null && widget.initialQuery!.isNotEmpty) {
       _searchCtrl.text = widget.initialQuery!;
-      _query = widget.initialQuery!;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ref.read(searchProvider.notifier).setQuery(widget.initialQuery!);
       });
@@ -52,62 +51,58 @@ class _AddShowSheetState extends ConsumerState<AddShowSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return MsSheet(
-      title: 'Add a show',
-      showHandle: true,
-      showCloseButton: true,
-      child: _selectedShowId == null
-          ? _buildSearch()
-          : _buildSelectedFlow(),
-    );
+    if (_selectedShowId != null) {
+      return _buildSelectedFlow();
+    }
+    return _buildSearchFlow();
   }
 
-  Widget _buildSearch() {
+  Widget _buildSearchFlow() {
     final searchState = ref.watch(searchProvider);
-    final results = _query.isEmpty ? <ShowResult>[] : searchState.showResults;
-    final isLoading = searchState.isLoading;
+    final results = searchState.showResults;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.pageGutter),
           child: TextField(
             controller: _searchCtrl,
-            onChanged: (v) {
-              setState(() => _query = v);
-              ref.read(searchProvider.notifier).setQuery(v);
-            },
             autofocus: true,
             decoration: InputDecoration(
-              hintText: 'Search shows...',
-              prefixIcon: const Icon(Icons.search_rounded),
-              suffixIcon: _query.isNotEmpty
+              hintText: 'Search TV shows...',
+              prefixIcon: const Icon(Icons.search_rounded, size: 20),
+              suffixIcon: _searchCtrl.text.isNotEmpty
                   ? IconButton(
-                      icon: const Icon(Icons.close_rounded),
+                      icon: const Icon(Icons.clear_rounded, size: 18),
                       onPressed: () {
                         _searchCtrl.clear();
-                        setState(() => _query = '');
                         ref.read(searchProvider.notifier).setQuery('');
                       },
                     )
                   : null,
             ),
+            onChanged: (q) => ref.read(searchProvider.notifier).setQuery(q),
           ),
         ),
         const SizedBox(height: AppSpacing.sp3),
-        if (isLoading && _query.isNotEmpty)
+
+        if (searchState.isLoading)
           const Padding(
-            padding: EdgeInsets.symmetric(vertical: AppSpacing.sp4),
-            child: CircularProgressIndicator(color: AppColors.signal),
+            padding: EdgeInsets.all(AppSpacing.sp6),
+            child: Center(
+              child: CircularProgressIndicator(color: AppColors.signal),
+            ),
           )
-        else if (_query.isEmpty)
+        else if (results.isEmpty && _searchCtrl.text.isNotEmpty)
           Padding(
-            padding: const EdgeInsets.all(AppSpacing.sp4),
-            child: Text(
-              'Search for a show to add.',
-              style: AppTypography.body.copyWith(color: AppColors.fg2),
-              textAlign: TextAlign.center,
+            padding: const EdgeInsets.all(AppSpacing.sp6),
+            child: Center(
+              child: Text(
+                'No shows found',
+                style: AppTypography.body.copyWith(color: AppColors.fg3),
+              ),
             ),
           )
         else
@@ -122,45 +117,46 @@ class _AddShowSheetState extends ConsumerState<AddShowSheet> {
                 final show = results[i];
                 return Padding(
                   padding: const EdgeInsets.only(bottom: AppSpacing.sp2),
-                  child: Row(
-                    children: [
-                      SizedBox(
-                        width: 48,
-                        child: PosterPlaceholder(
-                          title: show.title,
-                          imageUrl: show.posterUrl,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(8),
+                    onTap: () => setState(() {
+                      _selectedShowId = show.id;
+                      _selectedShowTitle = show.title;
+                      _selectedShowPosterUrl = show.posterUrl;
+                    }),
+                    child: Row(
+                      children: [
+                        SizedBox(
+                          width: 48,
+                          child: PosterPlaceholder(
+                            title: show.title,
+                            imageUrl: show.posterUrl,
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: AppSpacing.sp3),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(show.title, style: AppTypography.cardTitle),
-                            Text(
-                              [
-                                if (show.year != null) show.year!,
-                                if (show.status != null) show.status!,
-                              ].join(' · '),
-                              style: AppTypography.caption,
-                            ),
-                          ],
+                        const SizedBox(width: AppSpacing.sp3),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(show.title, style: AppTypography.cardTitle),
+                              Text(
+                                [
+                                  if (show.year != null) show.year!,
+                                  if (show.status != null) show.status!,
+                                ].join(' · '),
+                                style: AppTypography.caption,
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                      GestureDetector(
-                        onTap: () => setState(() {
-                          _selectedShowId = show.id;
-                          _selectedShowTitle = show.title;
-                          _selectedShowPosterUrl = show.posterUrl;
-                        }),
-                        child: Container(
+                        Container(
                           width: 32,
                           height: 32,
                           decoration: BoxDecoration(
                             color: AppColors.signalSoft,
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: AppColors.signal.withOpacity(0.3),
+                              color: AppColors.signal.withValues(alpha: 0.3),
                             ),
                           ),
                           child: const Icon(
@@ -169,8 +165,8 @@ class _AddShowSheetState extends ConsumerState<AddShowSheet> {
                             size: 18,
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 );
               },
@@ -259,55 +255,34 @@ class _AddShowSheetState extends ConsumerState<AddShowSheet> {
     );
   }
 
-  Future<void> _onSave() async {
-    if (_selectedShowId == null) return;
-    setState(() => _saving = true);
-    try {
-      final api = ref.read(apiClientProvider);
-      // Track the show (creates BingeTrack)
-      await api.post('/binge/$_selectedShowId');
-
-      if (_modeTab == 2) {
-        // "Add to list" mode — add to watchlist
-        await api.post('/lists/watchlist/$_selectedShowId');
-      }
-
-      if (mounted) Navigator.of(context).pop(true);
-    } catch (_) {
-      setState(() => _saving = false);
-    }
-  }
-
   Widget _buildWatchingMode(bool isDark, List<SeasonSummary> seasons) {
-    if (seasons.isEmpty) {
-      return Text(
-        'No season data available.',
-        style: AppTypography.body.copyWith(color: AppColors.fg2),
-      );
-    }
-
-    // Find the selected season's episode count
-    final selectedSeasonData = seasons.firstWhere(
+    final currentSeason = seasons.firstWhere(
       (s) => s.seasonNumber == _selectedSeason,
-      orElse: () => seasons.first,
+      orElse: () => seasons.isNotEmpty
+          ? seasons.first
+          : const SeasonSummary(
+              id: 0,
+              seasonNumber: 1,
+              name: 'Season 1',
+              episodeCount: 10,
+            ),
     );
-    final episodeCount = selectedSeasonData.episodeCount;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Season',
-            style:
-                AppTypography.captionSemiBold.copyWith(color: AppColors.fg3)),
+        Text('HOW FAR ALONG ARE YOU?', style: AppTypography.overline),
+        const SizedBox(height: AppSpacing.sp3),
+
+        Text('Season', style: AppTypography.caption),
         const SizedBox(height: AppSpacing.sp2),
         Wrap(
-          spacing: AppSpacing.sp2,
-          runSpacing: AppSpacing.sp2,
+          spacing: 8,
+          runSpacing: 8,
           children: seasons.map((s) {
             return MsChip(
               label: 'S${s.seasonNumber}',
-              selected: _selectedSeason == s.seasonNumber,
-              small: true,
+              selected: s.seasonNumber == _selectedSeason,
               onTap: () => setState(() {
                 _selectedSeason = s.seasonNumber;
                 _selectedEpisode = 0;
@@ -316,29 +291,21 @@ class _AddShowSheetState extends ConsumerState<AddShowSheet> {
           }).toList(),
         ),
         const SizedBox(height: AppSpacing.sp4),
-        Text('Last watched episode',
-            style:
-                AppTypography.captionSemiBold.copyWith(color: AppColors.fg3)),
+
+        Text('Episode', style: AppTypography.caption),
         const SizedBox(height: AppSpacing.sp2),
         Wrap(
-          spacing: AppSpacing.sp2,
-          runSpacing: AppSpacing.sp2,
-          children: List.generate(episodeCount, (i) {
+          spacing: 8,
+          runSpacing: 8,
+          children: List.generate(currentSeason.episodeCount, (i) {
             final epNum = i + 1;
             return MsChip(
               label: 'E$epNum',
-              selected: _selectedEpisode == epNum,
-              small: true,
+              selected: epNum == _selectedEpisode,
               onTap: () => setState(() => _selectedEpisode = epNum),
             );
           }),
         ),
-        const SizedBox(height: AppSpacing.sp3),
-        if (_selectedEpisode > 0)
-          Text(
-            'Will mark S${_selectedSeason.toString().padLeft(2, '0')}E01 through S${_selectedSeason.toString().padLeft(2, '0')}E${_selectedEpisode.toString().padLeft(2, '0')} as watched.',
-            style: AppTypography.caption.copyWith(color: AppColors.track),
-          ),
       ],
     );
   }
@@ -348,54 +315,72 @@ class _AddShowSheetState extends ConsumerState<AddShowSheet> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Mark entire series as watched.',
+          'Mark all episodes as watched and add to your history.',
           style: AppTypography.body.copyWith(color: AppColors.fg2),
-        ),
-        const SizedBox(height: AppSpacing.sp4),
-        Text('Date finished',
-            style:
-                AppTypography.captionSemiBold.copyWith(color: AppColors.fg3)),
-        const SizedBox(height: AppSpacing.sp2),
-        Wrap(
-          spacing: AppSpacing.sp2,
-          children: ['Today', 'Yesterday', 'Last week'].map((s) {
-            return MsChip(label: s, small: true, onTap: () {});
-          }).toList(),
         ),
       ],
     );
   }
 
   Widget _buildListMode(bool isDark) {
-    const lists = ['Desert Island Picks', 'Best Season Finales', 'Watch with Partner'];
-    final Set<String> checked = {};
-
-    return StatefulBuilder(
-      builder: (context, setSS) => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Add to list',
-              style: AppTypography.captionSemiBold
-                  .copyWith(color: AppColors.fg3)),
-          const SizedBox(height: AppSpacing.sp2),
-          ...lists.map((list) {
-            final isChecked = checked.contains(list);
-            return CheckboxListTile(
-              value: isChecked,
-              onChanged: (v) => setSS(() {
-                if (v == true) {
-                  checked.add(list);
-                } else {
-                  checked.remove(list);
-                }
-              }),
-              title: Text(list, style: AppTypography.body),
-              contentPadding: EdgeInsets.zero,
-              controlAffinity: ListTileControlAffinity.leading,
-            );
-          }),
-        ],
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('SELECT A LIST', style: AppTypography.overline),
+        const SizedBox(height: AppSpacing.sp3),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            MsChip(
+              label: 'Watchlist',
+              selected: true,
+              onTap: () {},
+            ),
+          ],
+        ),
+      ],
     );
+  }
+
+  Future<void> _onSave() async {
+    if (_selectedShowId == null) return;
+    setState(() => _saving = true);
+
+    try {
+      final api = ref.read(apiClientProvider);
+      if (_modeTab == 0) {
+        // Watching mode: track show and mark progress up to selected episode
+        await api.post('/binge/$_selectedShowId');
+        if (_selectedEpisode > 0) {
+          await api.post('/watch/progress', data: {
+            'showId': _selectedShowId,
+            'seasonNumber': _selectedSeason,
+            'episodeNumber': _selectedEpisode,
+          });
+        }
+      } else if (_modeTab == 1) {
+        // Watched mode: track show and mark entire show as watched
+        await api.post('/binge/$_selectedShowId');
+        await api.post('/watch/show/$_selectedShowId');
+      } else {
+        // Add to watchlist
+        await api.post('/lists/watchlist/$_selectedShowId');
+      }
+
+      ref.invalidate(profileProvider);
+      ref.invalidate(listsProvider);
+      ref.invalidate(showDetailProvider(_selectedShowId!));
+
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
+    } catch (_) {
+      // Error handled
+    } finally {
+      if (mounted) {
+        setState(() => _saving = false);
+      }
+    }
   }
 }

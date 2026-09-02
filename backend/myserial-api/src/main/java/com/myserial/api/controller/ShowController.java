@@ -1,17 +1,13 @@
 package com.myserial.api.controller;
 
 import com.myserial.api.dto.response.*;
-import com.myserial.api.exception.NotFoundException;
-import com.myserial.catalog.CatalogProvider;
-import com.myserial.catalog.dto.ShowSummary;
+import com.myserial.batch.CatalogSeedJob;
 import com.myserial.domain.entity.*;
+import com.myserial.domain.repository.BingeTrackRepository;
 import com.myserial.domain.repository.WatchedEpisodeRepository;
 import com.myserial.domain.service.ListService;
 import com.myserial.domain.service.ShowService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,46 +19,43 @@ import java.util.List;
 public class ShowController extends BaseController {
 
     private final ShowService showService;
-    private final CatalogProvider catalogProvider;
     private final ListService listService;
     private final WatchedEpisodeRepository watchedEpisodeRepository;
+    private final BingeTrackRepository bingeTrackRepository;
+    private final CatalogSeedJob catalogSeedJob;
 
     @GetMapping("/search")
-    public ResponseEntity<Page<ShowSummaryResponse>> search(
+    public ResponseEntity<List<ShowSummaryResponse>> search(
             @RequestParam String q,
-            @RequestParam(defaultValue = "en-US") String language,
-            Pageable pageable) {
-        List<ShowSummary> results = catalogProvider.searchShows(q, language);
-        List<ShowSummaryResponse> mapped = results.stream().map(s -> new ShowSummaryResponse(
-                null, s.tmdbId(), s.title(), s.originalTitle(), s.overview(),
-                s.posterPath(), s.backdropPath(), s.firstAirDate(), s.voteAverage(),
-                s.popularity(), s.status(), null
-        )).toList();
-        int start = (int) pageable.getOffset();
-        int end = Math.min(start + pageable.getPageSize(), mapped.size());
-        List<ShowSummaryResponse> page = start >= mapped.size() ? List.of() : mapped.subList(start, end);
-        return ResponseEntity.ok(new PageImpl<>(page, pageable, mapped.size()));
+            @RequestParam(defaultValue = "20") int limit) {
+        List<Show> results = showService.search(q, limit);
+        return ResponseEntity.ok(results.stream().map(DtoMapper::toShowSummaryResponse).toList());
+    }
+
+    @PostMapping("/seed")
+    public ResponseEntity<CatalogSeedJob.SeedResult> seedCatalog(
+            @RequestParam(defaultValue = "100") int count) {
+        CatalogSeedJob.SeedResult result = catalogSeedJob.seedFromExport(count);
+        return ResponseEntity.ok(result);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ShowDetailResponse> getShow(
-            @PathVariable Long id,
-            @RequestParam(defaultValue = "US") String country) {
+    public ResponseEntity<ShowDetailResponse> getShow(@PathVariable Long id) {
         Show show = showService.findById(id);
         Long showId = show.getId();
+
         List<Season> seasons = showService.getSeasons(showId);
         List<Credit> credits = showService.getCredits(showId);
-        List<StreamingAvailability> streaming = showService.getStreamingAvailability(showId, country);
+        List<StreamingAvailability> streaming = showService.getStreamingAvailability(showId, null);
 
-        List<SeasonResponse> seasonResponses = seasons.stream().map(s -> {
-            List<Episode> eps = showService.getSeasonEpisodes(showId, s.getSeasonNumber());
-            return DtoMapper.toSeasonResponse(s, eps);
-        }).toList();
+        List<SeasonResponse> seasonResponses = seasons.stream()
+                .map(s -> DtoMapper.toSeasonResponse(s, null))
+                .toList();
 
         List<CastMemberResponse> castPreview = credits.stream()
                 .filter(c -> "CAST".equals(c.getCreditType()))
                 .sorted(java.util.Comparator.comparingInt(c -> c.getDisplayOrder() != null ? c.getDisplayOrder() : 999))
-                .limit(4)
+                .limit(10)
                 .map(DtoMapper::toCastMemberResponse)
                 .toList();
 
@@ -76,9 +69,10 @@ public class ShowController extends BaseController {
                 .map(DtoMapper::toStreamingProviderResponse)
                 .toList();
 
-        Long userId = currentUserId();
-        boolean inWatchlist = listService.isInWatchlist(userId, showId);
-        long watchedCount = watchedEpisodeRepository.countByUserIdAndEpisodeShowId(userId, showId);
+        Long userId = optionalCurrentUserId();
+        boolean inWatchlist = userId != null && listService.isInWatchlist(userId, showId);
+        long watchedCount = userId != null ? watchedEpisodeRepository.countByUserIdAndEpisodeShowId(userId, showId) : 0;
+        boolean isTracked = userId != null && bingeTrackRepository.existsByUserIdAndShowId(userId, showId);
 
         ShowDetailResponse response = new ShowDetailResponse(
                 show.getId(), show.getTmdbId(), show.getTitle(), show.getOriginalTitle(),
@@ -86,7 +80,7 @@ public class ShowController extends BaseController {
                 show.getPosterPath(), show.getBackdropPath(), show.getGenres(), show.getNetwork(),
                 show.getEpisodeRunTime(), show.getVoteAverage(), show.getVoteCount(), show.getPopularity(),
                 seasonResponses, castPreview, crewPreview, streamingResponses,
-                inWatchlist, watchedCount
+                inWatchlist, watchedCount, isTracked
         );
         return ResponseEntity.ok(response);
     }
@@ -94,7 +88,7 @@ public class ShowController extends BaseController {
     @GetMapping("/{id}/seasons/{seasonNumber}")
     public ResponseEntity<SeasonResponse> getSeason(@PathVariable Long id, @PathVariable int seasonNumber) {
         Season season = showService.getSeasonWithEpisodes(id, seasonNumber)
-                .orElseThrow(() -> new NotFoundException("Season not found: S" + seasonNumber));
+                .orElseThrow(() -> new com.myserial.api.exception.NotFoundException("Season not found: S" + seasonNumber));
         List<Episode> eps = showService.getSeasonEpisodes(id, seasonNumber);
         return ResponseEntity.ok(DtoMapper.toSeasonResponse(season, eps));
     }
@@ -125,11 +119,15 @@ public class ShowController extends BaseController {
     @GetMapping("/{id}/recap")
     public ResponseEntity<RecapResponse> getRecap(
             @PathVariable Long id,
-            @RequestParam(defaultValue = "3") int chunkSize) {
-        ShowService.RecapResult result = showService.getRecap(id, currentUserId(), chunkSize);
+            @RequestParam(defaultValue = "1") int chunkSize) {
+        Long userId = optionalCurrentUserId();
+        ShowService.RecapResult result = showService.getRecap(id, userId, chunkSize);
         List<RecapResponse.RecapChapter> chapters = result.chapters().stream()
                 .map(c -> new RecapResponse.RecapChapter(c.range(), c.title(), c.body(), c.unlockAfterEpisode()))
                 .toList();
-        return ResponseEntity.ok(new RecapResponse(chapters, result.watchedCount()));
+        return ResponseEntity.ok(new RecapResponse(
+                chapters,
+                result.watchedCount()
+        ));
     }
 }

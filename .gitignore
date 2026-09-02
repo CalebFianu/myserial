@@ -5,6 +5,7 @@ claude_output/
 CLAUDE.md
 *.claude-conversation
 plan.md
+plans/
 
 # === Java / Spring Boot ===
 backend/**/*.class

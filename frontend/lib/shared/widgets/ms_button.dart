@@ -52,13 +52,20 @@ class _MsButtonState extends State<MsButton> {
   }
 
   EdgeInsets get _padding {
+    final isIconOnly = widget.label.isEmpty;
     switch (widget.size) {
       case MsButtonSize.sm:
-        return const EdgeInsets.symmetric(horizontal: 14, vertical: 8);
+        return isIconOnly
+            ? const EdgeInsets.symmetric(horizontal: 10, vertical: 8)
+            : const EdgeInsets.symmetric(horizontal: 12, vertical: 8);
       case MsButtonSize.md:
-        return const EdgeInsets.symmetric(horizontal: 20, vertical: 12);
+        return isIconOnly
+            ? const EdgeInsets.symmetric(horizontal: 14, vertical: 12)
+            : const EdgeInsets.symmetric(horizontal: 20, vertical: 12);
       case MsButtonSize.lg:
-        return const EdgeInsets.symmetric(horizontal: 24, vertical: 14);
+        return isIconOnly
+            ? const EdgeInsets.symmetric(horizontal: 18, vertical: 14)
+            : const EdgeInsets.symmetric(horizontal: 24, vertical: 14);
     }
   }
 
@@ -76,37 +83,52 @@ class _MsButtonState extends State<MsButton> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final isDisabled = widget.disabled || widget.loading;
+    final hasLabel = widget.label.isNotEmpty;
 
-    Widget content = Row(
-      mainAxisSize: widget.fullWidth ? MainAxisSize.max : MainAxisSize.min,
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        if (widget.loading)
-          SizedBox(
-            width: 16,
-            height: 16,
-            child: CircularProgressIndicator(
-              strokeWidth: 2,
-              valueColor: AlwaysStoppedAnimation<Color>(
-                _contentColor(isDark),
-              ),
-            ),
-          )
-        else ...[
-          if (widget.leading != null) ...[
-            widget.leading!,
-            const SizedBox(width: AppSpacing.sp2),
+    Widget content = LayoutBuilder(
+      builder: (context, constraints) {
+        final hasBoundedWidth =
+            constraints.hasBoundedWidth && constraints.maxWidth.isFinite;
+
+        final textWidget = hasLabel
+            ? Text(
+                widget.label,
+                style: _textStyle.copyWith(color: _contentColor(isDark)),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              )
+            : null;
+
+        return Row(
+          mainAxisSize: widget.fullWidth ? MainAxisSize.max : MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            if (widget.loading)
+              SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    _contentColor(isDark),
+                  ),
+                ),
+              )
+            else ...[
+              if (widget.leading != null) ...[
+                widget.leading!,
+                if (hasLabel) const SizedBox(width: AppSpacing.sp2),
+              ],
+              if (hasLabel)
+                hasBoundedWidth ? Flexible(child: textWidget!) : textWidget!,
+              if (widget.trailing != null) ...[
+                if (hasLabel) const SizedBox(width: AppSpacing.sp2),
+                widget.trailing!,
+              ],
+            ],
           ],
-          Text(
-            widget.label,
-            style: _textStyle.copyWith(color: _contentColor(isDark)),
-          ),
-          if (widget.trailing != null) ...[
-            const SizedBox(width: AppSpacing.sp2),
-            widget.trailing!,
-          ],
-        ],
-      ],
+        );
+      },
     );
 
     Widget button;

@@ -1,5 +1,6 @@
 package com.myserial.api.controller;
 
+import com.myserial.api.dto.request.BulkWatchProgressRequest;
 import com.myserial.api.dto.request.BulkWatchRequest;
 import com.myserial.api.dto.response.DiaryEntryResponse;
 import com.myserial.api.dto.response.UpNextResponse;
@@ -44,6 +45,23 @@ public class WatchController extends BaseController {
         watchService.bulkMarkSeasonWatched(userId, req.showId(), req.seasonNumber());
         activityService.log(userId, "SEASON_WATCHED", req.showId(), null, null,
                 "{\"seasonNumber\":" + req.seasonNumber() + "}");
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/progress")
+    public ResponseEntity<Void> bulkMarkProgress(@Valid @RequestBody BulkWatchProgressRequest req) {
+        Long userId = currentUserId();
+        watchService.bulkMarkUpToEpisode(userId, req.showId(), req.seasonNumber(), req.episodeNumber());
+        activityService.log(userId, "SEASON_WATCHED", req.showId(), null, null,
+                "{\"seasonNumber\":" + req.seasonNumber() + ",\"episodeNumber\":" + req.episodeNumber() + "}");
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/show/{showId}")
+    public ResponseEntity<Void> bulkMarkEntireShow(@PathVariable Long showId) {
+        Long userId = currentUserId();
+        watchService.bulkMarkEntireShowWatched(userId, showId);
+        activityService.log(userId, "SERIES_WATCHED", showId, null, null, null);
         return ResponseEntity.ok().build();
     }
 

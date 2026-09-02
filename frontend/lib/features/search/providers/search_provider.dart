@@ -2,7 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/api/api_client.dart';
 import '../../../core/utils/tmdb_image.dart';
 
-// ── Models ────────────────────────────────────────────────────────────────────
+// ── Models ────────────────────────────────────────────────────────────
 
 enum SearchTab { shows, people }
 
@@ -31,7 +31,7 @@ class ShowResult {
             ? firstAirDate.substring(0, 4)
             : null;
     return ShowResult(
-      id: json['id'] ?? json['tmdbId'] ?? 0,
+      id: (json['id'] as num?)?.toInt() ?? (json['tmdbId'] as num?)?.toInt() ?? 0,
       title: json['title'] as String? ?? '',
       posterUrl: tmdbImage(json['posterPath'] as String?),
       year: year,
@@ -53,6 +53,15 @@ class PersonResult {
   final String name;
   final String? avatarUrl;
   final String? knownFor;
+
+  factory PersonResult.fromJson(Map<String, dynamic> json) {
+    return PersonResult(
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      name: json['name'] as String? ?? '',
+      avatarUrl: tmdbImage(json['profilePath'] as String?),
+      knownFor: json['knownForDepartment'] as String?,
+    );
+  }
 }
 
 class SearchState {
@@ -90,7 +99,7 @@ class SearchState {
       );
 }
 
-// ── Provider ──────────────────────────────────────────────────────────────────
+// ── Provider ─────────────────────────────────────────────────────────
 
 final searchProvider =
     StateNotifierProvider<SearchNotifier, SearchState>(
@@ -126,15 +135,20 @@ class SearchNotifier extends StateNotifier<SearchState> {
     }
     try {
       final api = _ref.read(apiClientProvider);
-      final data = await api.get<Map<String, dynamic>>(
+      final dynamic data = await api.get<dynamic>(
         '/shows/search',
         queryParameters: {'q': query},
       );
-      final content = data['content'] as List? ?? [];
-      final showResults = content
-          .cast<Map<String, dynamic>>()
+
+      final List rawList = data is List
+          ? data
+          : (data is Map && data['content'] is List ? data['content'] as List : []);
+
+      final showResults = rawList
+          .whereType<Map<String, dynamic>>()
           .map(ShowResult.fromJson)
           .toList();
+
       state = state.copyWith(
         showResults: showResults,
         peopleResults: const [],

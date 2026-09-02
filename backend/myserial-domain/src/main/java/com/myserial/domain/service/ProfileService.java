@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -18,6 +18,7 @@ public class ProfileService {
     private final EpisodeRepository episodeRepository;
     private final BingeTrackRepository bingeTrackRepository;
     private final UserListRepository userListRepository;
+    private final ShowRepository showRepository;
 
     @Transactional(readOnly = true)
     public ProfileData getProfile(Long userId) {
@@ -25,16 +26,24 @@ public class ProfileService {
 
         StatsService.Stats stats = statsService.getStats(userId);
 
+        List<Long> watchedShowIds = watchedEpisodeRepository.findDistinctShowIdsOrderByLatestWatchedAtDesc(userId);
+        Set<Long> showIdSet = new LinkedHashSet<>(watchedShowIds);
+
         List<BingeTrack> tracks = bingeTrackRepository.findByUserId(userId);
-        List<ShowProgress> allProgress = tracks.stream()
-                .map(t -> {
-                    Show show = t.getShow();
-                    long watched = watchedEpisodeRepository.countByUserIdAndEpisodeShowId(userId, show.getId());
-                    long total = episodeRepository.countByShowId(show.getId());
-                    double progress = total > 0 ? (double) watched / total : 0.0;
-                    return new ShowProgress(show, watched, total, progress);
-                })
-                .toList();
+        for (BingeTrack t : tracks) {
+            showIdSet.add(t.getShow().getId());
+        }
+
+        List<ShowProgress> allProgress = new ArrayList<>();
+        for (Long showId : showIdSet) {
+            Show show = showRepository.findById(showId).orElse(null);
+            if (show != null) {
+                long watched = watchedEpisodeRepository.countByUserIdAndEpisodeShowId(userId, show.getId());
+                long total = episodeRepository.countByShowId(show.getId());
+                double progress = total > 0 ? (double) watched / total : 0.0;
+                allProgress.add(new ShowProgress(show, watched, total, progress));
+            }
+        }
 
         List<ShowProgress> watchingShows = allProgress.stream()
                 .filter(s -> s.progress() < 1.0 || s.totalEpisodes() == 0)
@@ -50,19 +59,22 @@ public class ProfileService {
         long totalRatings = stats.ratingsHistogram().values().stream().mapToLong(Long::longValue).sum();
         Double avgRating = totalRatings > 0 ? sumRatings / totalRatings : null;
 
-        List<UserList> lists = userListRepository.findByUserIdAndIsWatchlistFalseOrderByCreatedAtDesc(userId);
+        List<UserList> lists = userListRepository.findCustomListsWithItemsByUserId(userId);
 
-        UserList watchlist = userListRepository.findByUserIdAndIsWatchlistTrue(userId).orElse(null);
-        List<String> watchlistPosters = watchlist != null && watchlist.getItems() != null
-                ? watchlist.getItems().stream()
-                        .limit(4)
-                        .map(item -> item.getShow().getPosterPath())
-                        .filter(p -> p != null)
-                        .toList()
-                : List.of();
+        UserList watchlist = userListRepository.findWatchlistWithItemsByUserId(userId).orElse(null);
+        long watchlistCount = 0;
+        List<String> watchlistPosters = List.of();
+        if (watchlist != null && watchlist.getItems() != null) {
+            watchlistCount = watchlist.getItems().size();
+            watchlistPosters = watchlist.getItems().stream()
+                    .map(item -> item.getShow() != null ? item.getShow().getPosterPath() : null)
+                    .filter(Objects::nonNull)
+                    .limit(4)
+                    .toList();
+        }
 
-        return new ProfileData(user, stats.episodesWatched(), (long) tracks.size(), avgRating,
-                watchingShows, watchedShows, lists, watchlistPosters);
+        return new ProfileData(user, stats.episodesWatched(), (long) allProgress.size(), avgRating,
+                watchingShows, watchedShows, lists, watchlistCount, watchlistPosters);
     }
 
     public record ProfileData(
@@ -73,6 +85,7 @@ public class ProfileService {
             List<ShowProgress> watchingShows,
             List<ShowProgress> watchedShows,
             List<UserList> lists,
+            long watchlistCount,
             List<String> watchlistPosters
     ) {}
 

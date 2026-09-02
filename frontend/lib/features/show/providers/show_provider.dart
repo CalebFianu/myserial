@@ -1,30 +1,71 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/api/api_client.dart';
 import '../../../core/utils/tmdb_image.dart';
+import '../../lists/providers/lists_provider.dart';
+import '../../profile/providers/profile_provider.dart';
 
-// ── Models ────────────────────────────────────────────────────────────────────
+// ── Models ───────────────────────────────────────────────────────────────────
+
+class SeasonSummary {
+  const SeasonSummary({
+    this.id = 0,
+    required this.seasonNumber,
+    required this.name,
+    required this.episodeCount,
+    this.posterUrl,
+    this.airDate,
+    this.watchedCount = 0,
+    this.avgRating,
+  });
+
+  final int id;
+  final int seasonNumber;
+  final String name;
+  final int episodeCount;
+  final String? posterUrl;
+  final String? airDate;
+  final int watchedCount;
+  final double? avgRating;
+
+  factory SeasonSummary.fromJson(Map<String, dynamic> json) {
+    return SeasonSummary(
+      id: json['id'] as int? ?? 0,
+      seasonNumber: json['seasonNumber'] as int? ?? 1,
+      name: json['name'] as String? ?? '',
+      episodeCount: json['episodeCount'] as int? ?? 0,
+      posterUrl: tmdbImage(json['posterPath'] as String?),
+      airDate: json['airDate'] as String?,
+      watchedCount: json['watchedCount'] as int? ?? 0,
+      avgRating: (json['avgRating'] as num?)?.toDouble() ??
+          (json['voteAverage'] as num?)?.toDouble(),
+    );
+  }
+}
 
 class CastMember {
   const CastMember({
     required this.id,
+    required this.personId,
     required this.name,
     required this.character,
     this.avatarUrl,
-    this.order = 0,
   });
+
   final int id;
+  final int personId;
   final String name;
   final String character;
   final String? avatarUrl;
-  final int order;
 
-  factory CastMember.fromJson(Map<String, dynamic> json) => CastMember(
-        id: json['id'] as int? ?? 0,
-        name: json['name'] as String? ?? '',
-        character: json['characterName'] as String? ?? '',
-        avatarUrl: tmdbImage(json['profilePath'] as String?, size: 'w185'),
-        order: json['displayOrder'] as int? ?? 0,
-      );
+  factory CastMember.fromJson(Map<String, dynamic> json) {
+    return CastMember(
+      id: json['id'] as int? ?? 0,
+      personId: json['personId'] as int? ?? 0,
+      name: json['name'] as String? ?? '',
+      character: json['characterName'] as String? ?? '',
+      avatarUrl: tmdbImage(json['profilePath'] as String?),
+    );
+  }
 }
 
 class CrewMember {
@@ -32,69 +73,53 @@ class CrewMember {
     required this.id,
     required this.name,
     required this.job,
-    required this.department,
+    this.department,
     this.avatarUrl,
   });
+
   final int id;
   final String name;
   final String job;
-  final String department;
+  final String? department;
   final String? avatarUrl;
 
-  factory CrewMember.fromJson(Map<String, dynamic> json) => CrewMember(
-        id: json['id'] as int? ?? 0,
-        name: json['name'] as String? ?? '',
-        job: json['job'] as String? ?? '',
-        department: json['department'] as String? ?? '',
-        avatarUrl: tmdbImage(json['profilePath'] as String?, size: 'w185'),
-      );
-}
-
-class SeasonSummary {
-  const SeasonSummary({
-    required this.seasonNumber,
-    required this.name,
-    required this.episodeCount,
-    this.posterUrl,
-    this.avgRating,
-    this.watchedCount = 0,
-  });
-  final int seasonNumber;
-  final String name;
-  final int episodeCount;
-  final String? posterUrl;
-  final double? avgRating;
-  final int watchedCount;
-
-  factory SeasonSummary.fromJson(Map<String, dynamic> json) => SeasonSummary(
-        seasonNumber: json['seasonNumber'] as int? ?? 0,
-        name: json['name'] as String? ?? '',
-        episodeCount: json['episodeCount'] as int? ?? 0,
-        posterUrl: tmdbImage(json['posterPath'] as String?),
-        avgRating: null,
-        watchedCount: 0,
-      );
+  factory CrewMember.fromJson(Map<String, dynamic> json) {
+    return CrewMember(
+      id: json['id'] as int? ?? 0,
+      name: json['name'] as String? ?? '',
+      job: json['job'] as String? ?? '',
+      department: json['department'] as String?,
+      avatarUrl: tmdbImage(json['profilePath'] as String?),
+    );
+  }
 }
 
 class StreamingProvider {
   const StreamingProvider({
-    required this.name,
+    required this.providerName,
+    required this.providerType,
     this.logoUrl,
     this.leavingSoon,
     this.leavingDate,
   });
-  final String name;
+
+  final String providerName;
+  final String providerType; // 'flatrate', 'rent', 'buy', 'free'
   final String? logoUrl;
   final bool? leavingSoon;
   final String? leavingDate;
 
-  factory StreamingProvider.fromJson(Map<String, dynamic> json) =>
-      StreamingProvider(
-        name: json['providerName'] as String? ?? '',
-        logoUrl: tmdbImage(json['providerLogoPath'] as String?),
-        leavingSoon: null,
-        leavingDate: null,
-      );
+  String get name => providerName;
+
+  factory StreamingProvider.fromJson(Map<String, dynamic> json) {
+    return StreamingProvider(
+      providerName: json['providerName'] as String? ?? '',
+      providerType: json['providerType'] as String? ?? 'flatrate',
+      logoUrl: tmdbImage(json['logoPath'] as String?),
+      leavingSoon: json['leavingSoon'] as bool?,
+      leavingDate: json['leavingDate'] as String?,
+    );
+  }
 }
 
 class ShowDetail {
@@ -108,15 +133,16 @@ class ShowDetail {
     this.firstAirYear,
     this.lastAirYear,
     this.network,
-    this.totalEpisodes,
-    this.seasons = const [],
-    this.cast = const [],
-    this.crew = const [],
-    this.streamingProviders = const [],
+    required this.totalEpisodes,
+    required this.seasons,
+    required this.cast,
+    required this.crew,
+    required this.streamingProviders,
     this.avgRating,
     this.rewatchCount = 0,
     this.isInWatchlist = false,
     this.watchedEpisodeCount = 0,
+    this.isTracked = false,
   });
 
   final int id;
@@ -137,6 +163,7 @@ class ShowDetail {
   final int rewatchCount;
   final bool isInWatchlist;
   final int watchedEpisodeCount;
+  final bool isTracked;
 
   String get yearRange {
     if (firstAirYear == null) return '';
@@ -146,7 +173,7 @@ class ShowDetail {
     return '$firstAirYear–$lastAirYear';
   }
 
-  bool get hasWatched => watchedEpisodeCount > 0;
+  bool get hasWatched => watchedEpisodeCount > 0 || isTracked;
 
   factory ShowDetail.fromJson(Map<String, dynamic> json) {
     final seasons = (json['seasons'] as List? ?? [])
@@ -189,6 +216,7 @@ class ShowDetail {
       rewatchCount: 0,
       isInWatchlist: json['isInWatchlist'] as bool? ?? false,
       watchedEpisodeCount: json['watchedEpisodeCount'] as int? ?? 0,
+      isTracked: json['isTracked'] as bool? ?? false,
     );
   }
 }
@@ -198,93 +226,47 @@ class EpisodeDetail {
     required this.id,
     required this.episodeNumber,
     required this.seasonNumber,
-    required this.name,
+    String? name,
+    String? title,
     this.overview,
-    this.airDate,
-    this.runtime,
     this.stillUrl,
-    this.watched = false,
+    this.runtime,
+    this.airDate,
+    bool isWatched = false,
+    bool? watched,
     this.rating,
-  });
+  })  : name = name ?? title ?? '',
+        isWatched = watched ?? isWatched;
 
   final int id;
   final int episodeNumber;
   final int seasonNumber;
   final String name;
   final String? overview;
-  final String? airDate;
-  final int? runtime;
   final String? stillUrl;
-  final bool watched;
+  final int? runtime;
+  final String? airDate;
+  final bool isWatched;
   final double? rating;
 
-  factory EpisodeDetail.fromJson(Map<String, dynamic> json) => EpisodeDetail(
-        id: json['id'] as int? ?? 0,
-        episodeNumber: json['episodeNumber'] as int? ?? 0,
-        seasonNumber: json['seasonNumber'] as int? ?? 0,
-        name: json['name'] as String? ?? '',
-        overview: json['overview'] as String?,
-        airDate: json['airDate'] as String?,
-        runtime: json['runtime'] as int?,
-        stillUrl: tmdbImage(json['stillPath'] as String?, size: 'w300'),
-        watched: false,
-        rating: null,
-      );
-}
+  String get title => name;
+  bool get watched => isWatched;
 
-// ── Person models ─────────────────────────────────────────────────────────────
-
-class PersonCredit {
-  const PersonCredit({
-    required this.showId,
-    required this.showTitle,
-    this.posterUrl,
-    this.character,
-  });
-  final int showId;
-  final String showTitle;
-  final String? posterUrl;
-  final String? character;
-}
-
-class PersonData {
-  const PersonData({
-    required this.id,
-    required this.name,
-    this.role,
-    this.bio,
-    this.avatarUrl,
-    this.credits = const [],
-  });
-  final int id;
-  final String name;
-  final String? role;
-  final String? bio;
-  final String? avatarUrl;
-  final List<PersonCredit> credits;
-
-  factory PersonData.fromJson(Map<String, dynamic> json) {
-    final knownFor = (json['knownFor'] as List? ?? [])
-        .cast<Map<String, dynamic>>()
-        .map((e) => PersonCredit(
-              showId: e['id'] as int? ?? 0,
-              showTitle: e['title'] as String? ?? '',
-              posterUrl: tmdbImage(e['posterPath'] as String?),
-              character: null,
-            ))
-        .toList();
-    return PersonData(
+  factory EpisodeDetail.fromJson(Map<String, dynamic> json) {
+    return EpisodeDetail(
       id: json['id'] as int? ?? 0,
-      name: json['name'] as String? ?? '',
-      role: json['knownForDepartment'] as String?,
-      bio: json['biography'] as String?,
-      avatarUrl: tmdbImage(json['profilePath'] as String?, size: 'w185'),
-      credits: knownFor,
+      episodeNumber: json['episodeNumber'] as int? ?? 0,
+      seasonNumber: json['seasonNumber'] as int? ?? 0,
+      name: json['name'] as String? ?? json['title'] as String? ?? '',
+      overview: json['overview'] as String?,
+      stillUrl: tmdbImage(json['stillPath'] as String?),
+      runtime: json['runtime'] as int?,
+      airDate: json['airDate'] as String?,
+      isWatched: json['isWatched'] as bool? ?? json['watched'] as bool? ?? false,
+      rating: (json['rating'] as num?)?.toDouble(),
     );
   }
 }
-
-// ── Recap models ──────────────────────────────────────────────────────────────
 
 class RecapChapter {
   const RecapChapter({
@@ -293,37 +275,184 @@ class RecapChapter {
     required this.body,
     required this.unlockAfterEpisode,
   });
+
   final String range;
   final String title;
   final String body;
   final int unlockAfterEpisode;
 
-  factory RecapChapter.fromJson(Map<String, dynamic> json) => RecapChapter(
-        range: json['range'] as String? ?? '',
-        title: json['title'] as String? ?? '',
-        body: json['body'] as String? ?? '',
-        unlockAfterEpisode: json['unlockAfterEpisode'] as int? ?? 0,
-      );
+  factory RecapChapter.fromJson(Map<String, dynamic> json) {
+    return RecapChapter(
+      range: json['range'] as String? ?? '',
+      title: json['title'] as String? ?? '',
+      body: json['body'] as String? ?? '',
+      unlockAfterEpisode: json['unlockAfterEpisode'] as int? ?? 0,
+    );
+  }
 }
 
 class RecapData {
   const RecapData({
+    required this.showTitle,
+    required this.synopsis,
     required this.chapters,
     required this.watchedCount,
+    required this.totalEpisodes,
   });
+
+  final String showTitle;
+  final String synopsis;
   final List<RecapChapter> chapters;
   final int watchedCount;
+  final int totalEpisodes;
 
-  factory RecapData.fromJson(Map<String, dynamic> json) => RecapData(
-        chapters: (json['chapters'] as List? ?? [])
-            .cast<Map<String, dynamic>>()
-            .map(RecapChapter.fromJson)
-            .toList(),
-        watchedCount: json['watchedCount'] as int? ?? 0,
-      );
+  factory RecapData.fromJson(Map<String, dynamic> json) {
+    return RecapData(
+      showTitle: json['showTitle'] as String? ?? '',
+      synopsis: json['synopsis'] as String? ?? '',
+      chapters: (json['chapters'] as List? ?? [])
+          .cast<Map<String, dynamic>>()
+          .map(RecapChapter.fromJson)
+          .toList(),
+      watchedCount: json['watchedCount'] as int? ?? 0,
+      totalEpisodes: json['totalEpisodes'] as int? ?? 0,
+    );
+  }
 }
 
-// ── Providers ─────────────────────────────────────────────────────────────────
+class CastMemberFull {
+  const CastMemberFull({
+    required this.id,
+    required this.name,
+    required this.character,
+    this.avatarUrl,
+    required this.episodeCount,
+  });
+
+  final int id;
+  final String name;
+  final String character;
+  final String? avatarUrl;
+  final int episodeCount;
+
+  factory CastMemberFull.fromJson(Map<String, dynamic> json) {
+    return CastMemberFull(
+      id: json['id'] as int? ?? 0,
+      name: json['name'] as String? ?? '',
+      character: json['characterName'] as String? ?? '',
+      avatarUrl: tmdbImage(json['profilePath'] as String?),
+      episodeCount: json['episodeCount'] as int? ?? 0,
+    );
+  }
+}
+
+class CrewMemberFull {
+  const CrewMemberFull({
+    required this.id,
+    required this.name,
+    required this.department,
+    required this.job,
+    this.avatarUrl,
+  });
+
+  final int id;
+  final String name;
+  final String department;
+  final String job;
+  final String? avatarUrl;
+
+  factory CrewMemberFull.fromJson(Map<String, dynamic> json) {
+    return CrewMemberFull(
+      id: json['id'] as int? ?? 0,
+      name: json['name'] as String? ?? '',
+      department: json['department'] as String? ?? '',
+      job: json['job'] as String? ?? '',
+      avatarUrl: tmdbImage(json['profilePath'] as String?),
+    );
+  }
+}
+
+class ShowCredits {
+  const ShowCredits({required this.cast, required this.crew});
+  final List<CastMemberFull> cast;
+  final List<CrewMemberFull> crew;
+
+  factory ShowCredits.fromJson(Map<String, dynamic> json) {
+    return ShowCredits(
+      cast: (json['cast'] as List? ?? [])
+          .cast<Map<String, dynamic>>()
+          .map(CastMemberFull.fromJson)
+          .toList(),
+      crew: (json['crew'] as List? ?? [])
+          .cast<Map<String, dynamic>>()
+          .map(CrewMemberFull.fromJson)
+          .toList(),
+    );
+  }
+}
+
+class PersonCredit {
+  const PersonCredit({
+    required this.showId,
+    required this.showTitle,
+    this.character,
+    this.job,
+    this.posterUrl,
+    this.year,
+  });
+
+  final int showId;
+  final String showTitle;
+  final String? character;
+  final String? job;
+  final String? posterUrl;
+  final String? year;
+
+  factory PersonCredit.fromJson(Map<String, dynamic> json) {
+    return PersonCredit(
+      showId: json['showId'] as int? ?? json['show']?['id'] as int? ?? 0,
+      showTitle: json['showTitle'] as String? ?? json['show']?['title'] as String? ?? '',
+      character: json['character'] as String? ?? json['characterName'] as String?,
+      job: json['job'] as String?,
+      posterUrl: tmdbImage(json['posterPath'] as String? ?? json['show']?['posterPath'] as String?),
+      year: json['year'] as String?,
+    );
+  }
+}
+
+class PersonDetail {
+  const PersonDetail({
+    required this.id,
+    required this.name,
+    this.avatarUrl,
+    this.role,
+    this.bio,
+    this.credits = const [],
+  });
+
+  final int id;
+  final String name;
+  final String? avatarUrl;
+  final String? role;
+  final String? bio;
+  final List<PersonCredit> credits;
+
+  factory PersonDetail.fromJson(Map<String, dynamic> json) {
+    return PersonDetail(
+      id: json['id'] as int? ?? 0,
+      name: json['name'] as String? ?? '',
+      avatarUrl: tmdbImage(json['profilePath'] as String?),
+      role: json['knownForDepartment'] as String?,
+      bio: json['biography'] as String?,
+      credits: (json['credits'] as List? ?? [])
+          .cast<Map<String, dynamic>>()
+          .map(PersonCredit.fromJson)
+          .toList(),
+    );
+  }
+}
+
+// ── Providers ────────────────────────────────────────────────────────────────
 
 final showDetailProvider =
     AsyncNotifierProviderFamily<ShowDetailNotifier, ShowDetail, int>(
@@ -364,6 +493,7 @@ class ShowDetailNotifier extends FamilyAsyncNotifier<ShowDetail, int> {
       rewatchCount: current.rewatchCount,
       isInWatchlist: newState,
       watchedEpisodeCount: current.watchedEpisodeCount,
+      isTracked: current.isTracked,
     ));
 
     try {
@@ -372,6 +502,8 @@ class ShowDetailNotifier extends FamilyAsyncNotifier<ShowDetail, int> {
       } else {
         await api.delete('/lists/watchlist/${current.id}');
       }
+      ref.invalidate(profileProvider);
+      ref.invalidate(listsProvider);
     } catch (_) {
       // Revert on failure
       state = AsyncData(ShowDetail(
@@ -393,6 +525,7 @@ class ShowDetailNotifier extends FamilyAsyncNotifier<ShowDetail, int> {
         rewatchCount: current.rewatchCount,
         isInWatchlist: current.isInWatchlist,
         watchedEpisodeCount: current.watchedEpisodeCount,
+        isTracked: current.isTracked,
       ));
     }
   }
@@ -412,16 +545,44 @@ final seasonEpisodesProvider =
   },
 );
 
-final personProvider =
-    FutureProviderFamily<PersonData, int>((ref, personId) async {
-  final api = ref.read(apiClientProvider);
-  final data = await api.get<Map<String, dynamic>>('/people/$personId');
-  return PersonData.fromJson(data);
-});
+final showRecapProvider =
+    FutureProviderFamily<RecapData, ({int showId, int chunkSize})>(
+  (ref, args) async {
+    final api = ref.read(apiClientProvider);
+    final data = await api.get<Map<String, dynamic>>(
+      '/shows/${args.showId}/recap',
+      queryParameters: {'chunkSize': args.chunkSize},
+    );
+    return RecapData.fromJson(data);
+  },
+);
 
-final recapProvider =
-    FutureProviderFamily<RecapData, int>((ref, showId) async {
-  final api = ref.read(apiClientProvider);
-  final data = await api.get<Map<String, dynamic>>('/shows/$showId/recap');
-  return RecapData.fromJson(data);
-});
+final recapProvider = FutureProviderFamily<RecapData, int>(
+  (ref, showId) async {
+    return ref.watch(showRecapProvider((showId: showId, chunkSize: 1)).future);
+  },
+);
+
+final showCreditsProvider =
+    FutureProviderFamily<ShowCredits, ({int showId, String? query})>(
+  (ref, args) async {
+    final api = ref.read(apiClientProvider);
+    final queryParams = <String, dynamic>{};
+    if (args.query != null && args.query!.isNotEmpty) {
+      queryParams['q'] = args.query;
+    }
+    final data = await api.get<Map<String, dynamic>>(
+      '/shows/${args.showId}/cast',
+      queryParameters: queryParams.isEmpty ? null : queryParams,
+    );
+    return ShowCredits.fromJson(data);
+  },
+);
+
+final personProvider = FutureProviderFamily<PersonDetail, int>(
+  (ref, personId) async {
+    final api = ref.read(apiClientProvider);
+    final data = await api.get<Map<String, dynamic>>('/people/$personId');
+    return PersonDetail.fromJson(data);
+  },
+);

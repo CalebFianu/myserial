@@ -26,5 +26,6 @@ public record ShowDetailResponse(
         List<CrewMemberResponse> crewPreview,
         List<StreamingProviderResponse> streamingAvailability,
         boolean isInWatchlist,
-        long watchedEpisodeCount
+        long watchedEpisodeCount,
+        boolean isTracked
 ) {}

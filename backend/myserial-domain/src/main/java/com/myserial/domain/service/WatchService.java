@@ -23,6 +23,7 @@ public class WatchService {
     private final UserRepository userRepository;
     private final BingeTrackRepository bingeTrackRepository;
     private final ShowRepository showRepository;
+    private final ShowService showService;
 
     @Transactional
     public WatchedEpisode markWatched(Long userId, Long episodeId) {
@@ -46,8 +47,41 @@ public class WatchService {
 
     @Transactional
     public List<WatchedEpisode> bulkMarkSeasonWatched(Long userId, Long showId, int seasonNumber) {
-        List<Episode> episodes = episodeRepository.findByShowIdAndSeasonNumber(showId, seasonNumber);
+        Show show = showService.findById(showId);
+        Long resolvedShowId = show.getId();
+        List<Episode> episodes = episodeRepository.findByShowIdAndSeasonNumber(resolvedShowId, seasonNumber);
         User user = userRepository.findById(userId).orElseThrow();
+        return episodes.stream()
+                .filter(ep -> !watchedEpisodeRepository.existsByUserIdAndEpisodeId(userId, ep.getId()))
+                .map(ep -> watchedEpisodeRepository.save(WatchedEpisode.builder().user(user).episode(ep).build()))
+                .toList();
+    }
+
+    @Transactional
+    public List<WatchedEpisode> bulkMarkUpToEpisode(Long userId, Long showId, int seasonNumber, int episodeNumber) {
+        Show show = showService.findById(showId);
+        Long resolvedShowId = show.getId();
+        User user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        List<Episode> episodes = episodeRepository.findByShowIdOrderBySeasonNumberAscEpisodeNumberAsc(resolvedShowId);
+        List<Episode> targetEpisodes = episodes.stream()
+                .filter(ep -> ep.getSeasonNumber() < seasonNumber ||
+                        (ep.getSeasonNumber() == seasonNumber && ep.getEpisodeNumber() <= episodeNumber))
+                .toList();
+
+        return targetEpisodes.stream()
+                .filter(ep -> !watchedEpisodeRepository.existsByUserIdAndEpisodeId(userId, ep.getId()))
+                .map(ep -> watchedEpisodeRepository.save(WatchedEpisode.builder().user(user).episode(ep).build()))
+                .toList();
+    }
+
+    @Transactional
+    public List<WatchedEpisode> bulkMarkEntireShowWatched(Long userId, Long showId) {
+        Show show = showService.findById(showId);
+        Long resolvedShowId = show.getId();
+        User user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        List<Episode> episodes = episodeRepository.findByShowIdOrderBySeasonNumberAscEpisodeNumberAsc(resolvedShowId);
         return episodes.stream()
                 .filter(ep -> !watchedEpisodeRepository.existsByUserIdAndEpisodeId(userId, ep.getId()))
                 .map(ep -> watchedEpisodeRepository.save(WatchedEpisode.builder().user(user).episode(ep).build()))

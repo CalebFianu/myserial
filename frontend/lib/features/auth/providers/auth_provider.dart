@@ -2,7 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/api/api_client.dart';
 import '../../../core/storage/secure_storage.dart';
 
-// ── Models ────────────────────────────────────────────────────────────────────
+// ── Models ────────────────────────────────────────────────────────────
 
 class AuthUser {
   const AuthUser({
@@ -47,7 +47,7 @@ class AuthStateAuthenticated extends AuthState {
   final AuthUser user;
 }
 
-// ── Notifier ──────────────────────────────────────────────────────────────────
+// ── Notifier ──────────────────────────────────────────────────────────
 
 final authProvider =
     AsyncNotifierProvider<AuthNotifier, AuthState>(AuthNotifier.new);
@@ -73,7 +73,7 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
     required String password,
   }) async {
     state = const AsyncLoading();
-    state = await AsyncValue.guard(() async {
+    try {
       final api = ref.read(apiClientProvider);
       final data = await api.post<Map<String, dynamic>>(
         '/auth/login',
@@ -85,23 +85,31 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
         refreshToken: data['refreshToken'] as String,
         userId: (data['user'] as Map<String, dynamic>)['id'].toString(),
       );
-      return AuthStateAuthenticated(
-        AuthUser.fromJson(data['user'] as Map<String, dynamic>),
-      );
-    });
+      final user = AuthUser.fromJson(data['user'] as Map<String, dynamic>);
+      state = AsyncData(AuthStateAuthenticated(user));
+    } catch (e, st) {
+      state = AsyncError(e, st);
+      rethrow;
+    }
   }
 
   Future<void> register({
     required String name,
     required String email,
     required String password,
+    String? handle,
   }) async {
     state = const AsyncLoading();
-    state = await AsyncValue.guard(() async {
+    try {
       final api = ref.read(apiClientProvider);
       final data = await api.post<Map<String, dynamic>>(
         '/auth/register',
-        data: {'name': name, 'email': email, 'password': password},
+        data: {
+          'name': name,
+          'email': email,
+          'password': password,
+          if (handle != null && handle.isNotEmpty) 'handle': handle,
+        },
       );
       final storage = ref.read(secureStorageProvider);
       await storage.saveTokens(
@@ -109,10 +117,12 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
         refreshToken: data['refreshToken'] as String,
         userId: (data['user'] as Map<String, dynamic>)['id'].toString(),
       );
-      return AuthStateAuthenticated(
-        AuthUser.fromJson(data['user'] as Map<String, dynamic>),
-      );
-    });
+      final user = AuthUser.fromJson(data['user'] as Map<String, dynamic>);
+      state = AsyncData(AuthStateAuthenticated(user));
+    } catch (e, st) {
+      state = AsyncError(e, st);
+      rethrow;
+    }
   }
 
   Future<void> completeOnboarding() async {

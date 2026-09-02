@@ -14,6 +14,7 @@ public record ProfileResponse(
         List<UserShowProgress> watchingShows,
         List<UserShowProgress> watchedShows,
         List<UserListSummary> lists,
+        long watchlistCount,
         List<String> watchlistPosters
 ) {
     public record UserShowProgress(

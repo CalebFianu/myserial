@@ -67,10 +67,15 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(
                                 "/api/v1/auth/**",
+                                "/api/v1/shows/seed",
                                 "/api-docs/**",
                                 "/api-docs.yaml",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html"
+                        ).permitAll()
+                        .requestMatchers(HttpMethod.GET,
+                                "/api/v1/shows/**",
+                                "/api/v1/people/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )

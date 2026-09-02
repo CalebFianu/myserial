@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -22,6 +23,9 @@ public interface WatchedEpisodeRepository extends JpaRepository<WatchedEpisode, 
 
     @Query("SELECT we FROM WatchedEpisode we JOIN FETCH we.episode e JOIN FETCH e.show WHERE we.user.id = :userId ORDER BY we.watchedAt DESC")
     Page<WatchedEpisode> findByUserIdOrderByWatchedAtDesc(@Param("userId") Long userId, Pageable pageable);
+
+    @Query("SELECT we.episode.show.id FROM WatchedEpisode we WHERE we.user.id = :userId GROUP BY we.episode.show.id ORDER BY MAX(we.watchedAt) DESC")
+    List<Long> findDistinctShowIdsOrderByLatestWatchedAtDesc(@Param("userId") Long userId);
 
     long countByUserId(Long userId);
 

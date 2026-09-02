@@ -7,12 +7,14 @@ import '../../../design/spacing.dart';
 import '../../../design/typography.dart';
 import '../providers/show_provider.dart';
 
-// ── Force-directed graph node ─────────────────────────────────────────────────
+// ── Force-directed graph node ─────────────────────────────────────────
 
 class _GraphNode {
   _GraphNode({
     required this.id,
     required this.label,
+    required this.actorName,
+    this.avatarUrl,
     required this.color,
     required this.size,
     required Offset position,
@@ -21,6 +23,8 @@ class _GraphNode {
 
   final int id;
   final String label;
+  final String actorName;
+  final String? avatarUrl;
   final Color color;
   final double size;
   double x;
@@ -46,9 +50,10 @@ class CastGraphScreen extends ConsumerStatefulWidget {
 class _CastGraphScreenState extends ConsumerState<CastGraphScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _ctrl;
-  late List<_GraphNode> _nodes;
-  late List<_GraphEdge> _edges;
+  List<_GraphNode> _nodes = [];
+  List<_GraphEdge> _edges = [];
   int? _selectedNodeId;
+  bool _initializedWithCast = false;
 
   static final _factionColors = [
     AppColors.signal,
@@ -56,6 +61,8 @@ class _CastGraphScreenState extends ConsumerState<CastGraphScreen>
     AppColors.star,
     AppColors.info,
     const Color(0xFF9775FA),
+    const Color(0xFFFF922B),
+    const Color(0xFF20C997),
   ];
 
   @override
@@ -63,47 +70,56 @@ class _CastGraphScreenState extends ConsumerState<CastGraphScreen>
     super.initState();
     _ctrl = AnimationController(vsync: this, duration: const Duration(seconds: 5))
       ..repeat();
-    _initGraph();
   }
 
-  void _initGraph() {
-    final rng = math.Random(42);
-    final screenW = 400.0;
-    final screenH = 350.0;
+  void _initGraph(List<CastMember> cast) {
+    if (cast.isEmpty) {
+      _nodes = [];
+      _edges = [];
+      return;
+    }
 
-    _nodes = List.generate(8, (i) {
+    final rng = math.Random(widget.showId + 42);
+    const screenW = 380.0;
+    const screenH = 340.0;
+
+    final count = math.min(cast.length, 12);
+    _nodes = List.generate(count, (i) {
+      final cm = cast[i];
+      final charName = cm.character.isNotEmpty ? cm.character : cm.name;
       return _GraphNode(
         id: i,
-        label: [
-          'Mark S.',
-          'Helly R.',
-          'Dylan G.',
-          'Irving B.',
-          'Milchick',
-          'Cobel',
-          'Reghabi',
-          'Devon',
-        ][i],
+        label: charName,
+        actorName: cm.name,
+        avatarUrl: cm.avatarUrl,
         color: _factionColors[i % _factionColors.length],
-        size: i == 0 ? 28 : 20,
+        size: i == 0 ? 28 : (i < 3 ? 24 : 20),
         position: Offset(
-          80 + rng.nextDouble() * (screenW - 160),
-          60 + rng.nextDouble() * (screenH - 120),
+          60 + rng.nextDouble() * (screenW - 120),
+          50 + rng.nextDouble() * (screenH - 100),
         ),
       );
     });
 
-    _edges = const [
-      _GraphEdge(0, 1),
-      _GraphEdge(0, 2),
-      _GraphEdge(0, 3),
-      _GraphEdge(1, 4),
-      _GraphEdge(2, 4),
-      _GraphEdge(3, 5),
-      _GraphEdge(0, 6),
-      _GraphEdge(0, 7),
-      _GraphEdge(4, 5),
-    ];
+    final edges = <_GraphEdge>[];
+    if (count > 1) {
+      // Connect main lead to primary cast
+      for (var i = 1; i < math.min(count, 5); i++) {
+        edges.add(_GraphEdge(0, i));
+      }
+      // Connect secondary cast
+      for (var i = 1; i < count - 1; i++) {
+        edges.add(_GraphEdge(i, i + 1));
+      }
+      if (count > 4) {
+        edges.add(_GraphEdge(1, 3));
+      }
+      if (count > 6) {
+        edges.add(_GraphEdge(2, 5));
+      }
+    }
+    _edges = edges;
+    _initializedWithCast = true;
   }
 
   @override
@@ -113,6 +129,7 @@ class _CastGraphScreenState extends ConsumerState<CastGraphScreen>
   }
 
   void _simulate(Size size) {
+    if (_nodes.isEmpty) return;
     const alpha = 0.02;
     const repulsion = 1800.0;
     const attraction = 0.05;
@@ -134,6 +151,7 @@ class _CastGraphScreenState extends ConsumerState<CastGraphScreen>
     }
 
     for (final edge in _edges) {
+      if (edge.from >= _nodes.length || edge.to >= _nodes.length) continue;
       final a = _nodes[edge.from];
       final b = _nodes[edge.to];
       final dx = b.x - a.x;
@@ -159,128 +177,209 @@ class _CastGraphScreenState extends ConsumerState<CastGraphScreen>
   Widget build(BuildContext context) {
     final showAsync = ref.watch(showDetailProvider(widget.showId));
     final topPad = MediaQuery.paddingOf(context).top;
-    final selectedNode =
-        _selectedNodeId != null ? _nodes[_selectedNodeId!] : null;
 
     return Scaffold(
       backgroundColor: AppColors.ink0,
-      body: Column(
-        children: [
-          // Header
-          Padding(
-            padding: EdgeInsets.fromLTRB(
-              AppSpacing.pageGutter,
-              topPad + AppSpacing.sp4,
-              AppSpacing.pageGutter,
-              0,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                GestureDetector(
-                  onTap: () => context.pop(),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.arrow_back_rounded,
-                          size: 18, color: AppColors.fg3),
-                      SizedBox(width: 4),
-                      Text('Back',
-                          style: TextStyle(color: AppColors.fg3, fontSize: 13)),
-                    ],
-                  ),
+      body: showAsync.when(
+        loading: () => const Center(
+          child: CircularProgressIndicator(color: AppColors.signal),
+        ),
+        error: (e, _) => Center(
+          child: Text('Error loading cast', style: AppTypography.body),
+        ),
+        data: (show) {
+          if (!_initializedWithCast) {
+            _initGraph(show.cast);
+          }
+
+          final selectedNode =
+              _selectedNodeId != null && _selectedNodeId! < _nodes.length
+                  ? _nodes[_selectedNodeId!]
+                  : null;
+
+          return Column(
+            children: [
+              // Header
+              Padding(
+                padding: EdgeInsets.fromLTRB(
+                  AppSpacing.pageGutter,
+                  topPad + AppSpacing.sp4,
+                  AppSpacing.pageGutter,
+                  0,
                 ),
-                const SizedBox(height: AppSpacing.sp3),
-                Text('Who you\'ve met', style: AppTypography.title),
-                const SizedBox(height: AppSpacing.sp3),
-                // Legend
-                Wrap(
-                  spacing: AppSpacing.sp3,
-                  runSpacing: AppSpacing.sp2,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _LegendDot(color: AppColors.signal, label: 'MDR Team'),
-                    _LegendDot(color: AppColors.track, label: 'Management'),
-                    _LegendDot(color: AppColors.star, label: 'Outside'),
-                  ],
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: AppSpacing.sp4),
-
-          // Graph
-          Expanded(
-            flex: 3,
-            child: AnimatedBuilder(
-              animation: _ctrl,
-              builder: (context, _) {
-                return LayoutBuilder(
-                  builder: (context, constraints) {
-                    final size =
-                        Size(constraints.maxWidth, constraints.maxHeight);
-                    _simulate(size);
-                    return GestureDetector(
-                      onTapDown: (d) {
-                        final pos = d.localPosition;
-                        int? hit;
-                        for (var i = 0; i < _nodes.length; i++) {
-                          final n = _nodes[i];
-                          final dx = pos.dx - n.x;
-                          final dy = pos.dy - n.y;
-                          if (math.sqrt(dx * dx + dy * dy) <= n.size + 8) {
-                            hit = i;
-                            break;
-                          }
-                        }
-                        setState(() => _selectedNodeId = hit);
-                      },
-                      child: CustomPaint(
-                        size: size,
-                        painter: _GraphPainter(
-                          nodes: _nodes,
-                          edges: _edges,
-                          selectedId: _selectedNodeId,
-                        ),
+                    GestureDetector(
+                      onTap: () => context.pop(),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.arrow_back_rounded,
+                              size: 18, color: AppColors.fg3),
+                          SizedBox(width: 4),
+                          Text('Back',
+                              style: TextStyle(color: AppColors.fg3, fontSize: 13)),
+                        ],
                       ),
-                    );
-                  },
-                );
-              },
-            ),
-          ),
-
-          // Selected node panel
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 240),
-            height: selectedNode != null ? 100 : 0,
-            child: selectedNode != null
-                ? Container(
-                    width: double.infinity,
-                    margin: const EdgeInsets.all(AppSpacing.pageGutter),
-                    padding: const EdgeInsets.all(AppSpacing.sp4),
-                    decoration: BoxDecoration(
-                      color: AppColors.ink1,
-                      borderRadius: AppRadius.cardRR,
-                      border: Border.all(color: selectedNode.color.withOpacity(0.5)),
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    const SizedBox(height: AppSpacing.sp3),
+                    Text('Who you\'ve met', style: AppTypography.title),
+                    const SizedBox(height: AppSpacing.sp1),
+                    Text(
+                      'Characters introduced so far in ${show.title}',
+                      style: AppTypography.caption.copyWith(color: AppColors.fg3),
+                    ),
+                    const SizedBox(height: AppSpacing.sp3),
+                    // Legend
+                    Wrap(
+                      spacing: AppSpacing.sp3,
+                      runSpacing: AppSpacing.sp2,
                       children: [
-                        Text(selectedNode.label, style: AppTypography.heading),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Connected to ${_edges.where((e) => e.from == selectedNode.id || e.to == selectedNode.id).length} characters',
-                          style: AppTypography.caption,
-                        ),
+                        _LegendDot(color: AppColors.signal, label: 'Lead Cast'),
+                        _LegendDot(color: AppColors.track, label: 'Supporting'),
+                        _LegendDot(color: AppColors.star, label: 'Recurring'),
                       ],
                     ),
-                  )
-                : const SizedBox.shrink(),
-          ),
+                  ],
+                ),
+              ),
 
-          const SizedBox(height: AppSpacing.sp4),
-        ],
+              const SizedBox(height: AppSpacing.sp4),
+
+              // Graph
+              Expanded(
+                child: _nodes.isEmpty
+                    ? Center(
+                        child: Text(
+                          'No cast characters available.',
+                          style: AppTypography.body.copyWith(color: AppColors.fg2),
+                        ),
+                      )
+                    : AnimatedBuilder(
+                        animation: _ctrl,
+                        builder: (context, _) {
+                          return LayoutBuilder(
+                            builder: (context, constraints) {
+                              final size =
+                                  Size(constraints.maxWidth, constraints.maxHeight);
+                              _simulate(size);
+                              return GestureDetector(
+                                onTapDown: (d) {
+                                  final pos = d.localPosition;
+                                  int? hit;
+                                  for (var i = 0; i < _nodes.length; i++) {
+                                    final n = _nodes[i];
+                                    final dx = pos.dx - n.x;
+                                    final dy = pos.dy - n.y;
+                                    if (math.sqrt(dx * dx + dy * dy) <=
+                                        n.size + 10) {
+                                      hit = i;
+                                      break;
+                                    }
+                                  }
+                                  setState(() => _selectedNodeId = hit);
+                                },
+                                child: CustomPaint(
+                                  size: size,
+                                  painter: _GraphPainter(
+                                    nodes: _nodes,
+                                    edges: _edges,
+                                    selectedId: _selectedNodeId,
+                                  ),
+                                ),
+                              );
+                            },
+                          );
+                        },
+                      ),
+              ),
+
+              // Selected node panel
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 240),
+                height: selectedNode != null ? 110 : 0,
+                child: selectedNode != null
+                    ? Container(
+                        width: double.infinity,
+                        margin: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.pageGutter,
+                          vertical: AppSpacing.sp2,
+                        ),
+                        padding: const EdgeInsets.all(AppSpacing.sp4),
+                        decoration: BoxDecoration(
+                          color: AppColors.ink1,
+                          borderRadius: AppRadius.cardRR,
+                          border: Border.all(
+                            color: selectedNode.color.withOpacity(0.5),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 44,
+                              height: 44,
+                              decoration: BoxDecoration(
+                                color: selectedNode.color.withOpacity(0.2),
+                                shape: BoxShape.circle,
+                                border: Border.all(color: selectedNode.color),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  selectedNode.label
+                                      .split(' ')
+                                      .map((w) => w.isNotEmpty ? w[0] : '')
+                                      .take(2)
+                                      .join(),
+                                  style: TextStyle(
+                                    color: selectedNode.color,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: AppSpacing.sp3),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    selectedNode.label,
+                                    style: AppTypography.heading,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    'Played by ${selectedNode.actorName}',
+                                    style: AppTypography.caption.copyWith(
+                                      color: AppColors.fg2,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    'Connected to ${_edges.where((e) => e.from == selectedNode.id || e.to == selectedNode.id).length} characters',
+                                    style: AppTypography.micro.copyWith(
+                                      color: AppColors.fg3,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : const SizedBox.shrink(),
+              ),
+
+              const SizedBox(height: AppSpacing.sp4),
+            ],
+          );
+        },
       ),
     );
   }
@@ -338,14 +437,18 @@ class _GraphPainter extends CustomPainter {
         ..style = PaintingStyle.stroke;
       canvas.drawCircle(Offset(n.x, n.y), n.size, borderPaint);
 
-      // Label
-      final initials = n.label.split(' ').map((w) => w[0]).take(2).join();
+      // Initials Label
+      final initials = n.label
+          .split(' ')
+          .map((w) => w.isNotEmpty ? w[0] : '')
+          .take(2)
+          .join();
       final tp = TextPainter(
         text: TextSpan(
           text: initials,
           style: TextStyle(
             color: n.color,
-            fontSize: n.size * 0.6,
+            fontSize: n.size * 0.55,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -356,7 +459,7 @@ class _GraphPainter extends CustomPainter {
         Offset(n.x - tp.width / 2, n.y - tp.height / 2),
       );
 
-      // Name label below node
+      // Character name below node
       final nameTp = TextPainter(
         text: TextSpan(
           text: n.label,

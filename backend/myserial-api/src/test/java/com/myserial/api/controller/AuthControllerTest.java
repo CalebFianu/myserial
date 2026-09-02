@@ -61,6 +61,18 @@ class AuthControllerTest {
     }
 
     @Test
+    void register_withoutHandle_autoGeneratesHandle() throws Exception {
+        RegisterRequest req = new RegisterRequest("No Handle User", "nohandle@example.com", "password123", null);
+        mockMvc.perform(post("/api/v1/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.accessToken").isNotEmpty())
+                .andExpect(jsonPath("$.user.email").value("nohandle@example.com"))
+                .andExpect(jsonPath("$.user.handle").value("nohandle"));
+    }
+
+    @Test
     void register_duplicateEmail_returnsConflict() throws Exception {
         RegisterRequest req = new RegisterRequest("Dup User", "dup@example.com", "password123", "dupuser");
         mockMvc.perform(post("/api/v1/auth/register")

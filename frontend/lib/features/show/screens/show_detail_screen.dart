@@ -174,7 +174,7 @@ class _ShowDetailContent extends StatelessWidget {
                     if (show.hasWatched) ...[
                       Expanded(
                         child: MsButton(
-                          label: 'The story so far',
+                          label: 'Story recap',
                           variant: MsButtonVariant.secondary,
                           size: MsButtonSize.sm,
                           leading: const Icon(Icons.auto_stories_outlined,
@@ -197,23 +197,18 @@ class _ShowDetailContent extends StatelessWidget {
                     ] else ...[
                       Expanded(
                         child: show.isInWatchlist
-                            ? GestureDetector(
-                                onTap: () => ref
+                            ? MsButton(
+                                label: 'In watchlist',
+                                variant: MsButtonVariant.secondary,
+                                size: MsButtonSize.sm,
+                                leading: const Icon(
+                                  Icons.check_rounded,
+                                  size: 14,
+                                  color: AppColors.track,
+                                ),
+                                onPressed: () => ref
                                     .read(showDetailProvider(show.id).notifier)
                                     .toggleWatchlist(),
-                                child: Row(
-                                  children: [
-                                    Icon(Icons.check_rounded,
-                                        color: AppColors.track, size: 16),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      'In your watchlist',
-                                      style: AppTypography.caption.copyWith(
-                                        color: AppColors.track,
-                                      ),
-                                    ),
-                                  ],
-                                ),
                               )
                             : MsButton(
                                 label: 'Add to watchlist',
@@ -398,7 +393,7 @@ class _ShowDetailContent extends StatelessWidget {
   }
 }
 
-// ── Sub-widgets ───────────────────────────────────────────────────────────────
+// ── Sub-widgets ─────────────────────────────────────────────────────────────
 
 class _StreamingCard extends StatelessWidget {
   const _StreamingCard({required this.providers});

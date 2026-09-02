@@ -55,7 +55,7 @@ public class ProfileController extends BaseController {
                 data.user().getId(), data.user().getName(), data.user().getHandle(),
                 data.user().getBio(), data.user().getAvatarPath(),
                 data.episodeCount(), data.showCount(), data.avgRating(),
-                watchingShows, watchedShows, listSummaries, data.watchlistPosters()
+                watchingShows, watchedShows, listSummaries, data.watchlistCount(), data.watchlistPosters()
         ));
     }
 }
