@@ -7,6 +7,7 @@ import '../../../design/typography.dart';
 import '../../../design/motion.dart';
 import '../../../features/add/widgets/add_show_sheet.dart';
 import '../../../shared/widgets/ms_button.dart';
+import '../../../shared/widgets/ms_sheet.dart';
 import '../../../shared/widgets/poster_placeholder.dart';
 import '../providers/auth_provider.dart';
 
@@ -206,12 +207,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
   }
 
   void _openAddSheet(String showTitle) async {
-    await showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      barrierColor: Colors.black.withOpacity(0.6),
-      builder: (_) => AddShowSheet(initialQuery: showTitle),
+    await MsSheet.show(
+      context,
+      title: 'Add show',
+      child: AddShowSheet(initialQuery: showTitle),
     );
     if (mounted) {
       await ref.read(authProvider.notifier).completeOnboarding();

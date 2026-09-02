@@ -13,5 +13,6 @@ public record EpisodeResponse(
         LocalDate airDate,
         String stillPath,
         Integer runtime,
-        BigDecimal voteAverage
+        BigDecimal voteAverage,
+        boolean isWatched
 ) {}

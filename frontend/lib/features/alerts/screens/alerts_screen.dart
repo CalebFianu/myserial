@@ -5,6 +5,7 @@ import '../../../design/colors.dart';
 import '../../../design/spacing.dart';
 import '../../../design/typography.dart';
 import '../../../shared/widgets/ms_badge.dart';
+import '../../../shared/widgets/pinned_header.dart';
 import '../providers/alerts_provider.dart';
 
 class AlertsScreen extends ConsumerWidget {
@@ -56,7 +57,9 @@ class AlertsScreen extends ConsumerWidget {
       backgroundColor: isDark ? AppColors.ink0 : AppColors.paper0,
       body: CustomScrollView(
         slivers: [
-          SliverToBoxAdapter(
+          pinnedHeader(
+            height: topPad + 54,
+            background: isDark ? AppColors.ink0 : AppColors.paper0,
             child: Padding(
               padding: EdgeInsets.fromLTRB(
                 AppSpacing.pageGutter,
@@ -64,32 +67,36 @@ class AlertsScreen extends ConsumerWidget {
                 AppSpacing.pageGutter,
                 0,
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Row(
                 children: [
-                  Row(
-                    children: [
-                      GestureDetector(
-                        onTap: () => context.pop(),
-                        child: const Icon(
-                          Icons.arrow_back_rounded,
-                          color: AppColors.fg3,
-                          size: 22,
-                        ),
-                      ),
-                      const SizedBox(width: AppSpacing.sp3),
-                      Expanded(
-                        child:
-                            Text('Binge alerts', style: AppTypography.title),
-                      ),
-                    ],
+                  GestureDetector(
+                    onTap: () => context.pop(),
+                    child: const Icon(
+                      Icons.arrow_back_rounded,
+                      color: AppColors.fg3,
+                      size: 22,
+                    ),
                   ),
-                  const SizedBox(height: AppSpacing.sp2),
-                  Text(
-                    'You\'ll be notified when shows you follow drop a complete season.',
-                    style: AppTypography.caption,
+                  const SizedBox(width: AppSpacing.sp3),
+                  Expanded(
+                    child: Text('Binge alerts', style: AppTypography.title),
                   ),
                 ],
+              ),
+            ),
+          ),
+
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.pageGutter,
+                AppSpacing.sp2,
+                AppSpacing.pageGutter,
+                0,
+              ),
+              child: Text(
+                'You\'ll be notified when shows you follow drop a complete season.',
+                style: AppTypography.caption,
               ),
             ),
           ),

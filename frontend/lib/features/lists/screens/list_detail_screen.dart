@@ -6,6 +6,7 @@ import '../../../design/spacing.dart';
 import '../../../design/typography.dart';
 import '../../../shared/widgets/ms_avatar.dart';
 import '../../../shared/widgets/ms_toast.dart';
+import '../../../shared/widgets/pinned_header.dart';
 import '../../../shared/widgets/poster_placeholder.dart';
 import '../providers/lists_provider.dart';
 import '../widgets/edit_list_sheet.dart';
@@ -37,7 +38,9 @@ class ListDetailScreen extends ConsumerWidget {
 
           return CustomScrollView(
             slivers: [
-              SliverToBoxAdapter(
+              pinnedHeader(
+                height: topPad + 56,
+                background: isDark ? AppColors.ink0 : AppColors.paper0,
                 child: Padding(
                   padding: EdgeInsets.fromLTRB(
                     AppSpacing.pageGutter,
@@ -45,48 +48,58 @@ class ListDetailScreen extends ConsumerWidget {
                     AppSpacing.pageGutter,
                     0,
                   ),
+                  child: Row(
+                    children: [
+                      GestureDetector(
+                        onTap: () => context.pop(),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.arrow_back_rounded,
+                                size: 18, color: AppColors.fg3),
+                            const SizedBox(width: 4),
+                            Text('Lists',
+                                style: AppTypography.caption
+                                    .copyWith(color: AppColors.fg3)),
+                          ],
+                        ),
+                      ),
+                      const Spacer(),
+                      if (!list.isWatchlist) ...[
+                        GestureDetector(
+                          onTap: () => _editList(context, ref, list),
+                          child: Padding(
+                            padding: const EdgeInsets.all(8),
+                            child: Icon(Icons.edit_outlined,
+                                size: 20, color: AppColors.fg3),
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        GestureDetector(
+                          onTap: () => _deleteList(context, ref, list),
+                          child: Padding(
+                            padding: const EdgeInsets.all(8),
+                            child: Icon(Icons.delete_outline_rounded,
+                                size: 20, color: AppColors.alertColor),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.pageGutter,
+                    AppSpacing.sp4,
+                    AppSpacing.pageGutter,
+                    0,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        children: [
-                          GestureDetector(
-                            onTap: () => context.pop(),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(Icons.arrow_back_rounded,
-                                    size: 18, color: AppColors.fg3),
-                                const SizedBox(width: 4),
-                                Text('Lists',
-                                    style: AppTypography.caption
-                                        .copyWith(color: AppColors.fg3)),
-                              ],
-                            ),
-                          ),
-                          const Spacer(),
-                          if (!list.isWatchlist) ...[
-                            GestureDetector(
-                              onTap: () => _editList(context, ref, list),
-                              child: Padding(
-                                padding: const EdgeInsets.all(8),
-                                child: Icon(Icons.edit_outlined,
-                                    size: 20, color: AppColors.fg3),
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            GestureDetector(
-                              onTap: () => _deleteList(context, ref, list),
-                              child: Padding(
-                                padding: const EdgeInsets.all(8),
-                                child: Icon(Icons.delete_outline_rounded,
-                                    size: 20, color: AppColors.alertColor),
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                      const SizedBox(height: AppSpacing.sp4),
                       Text(list.name, style: AppTypography.title),
                       if (list.description != null) ...[
                         const SizedBox(height: AppSpacing.sp2),

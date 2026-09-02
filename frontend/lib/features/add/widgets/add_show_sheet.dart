@@ -14,9 +14,18 @@ import '../../../shared/widgets/poster_placeholder.dart';
 import '../../../shared/widgets/segmented_control.dart';
 
 class AddShowSheet extends ConsumerStatefulWidget {
-  const AddShowSheet({super.key, this.initialQuery});
+  const AddShowSheet({
+    super.key,
+    this.initialQuery,
+    this.preselectedShowId,
+    this.preselectedShowTitle,
+    this.preselectedShowPosterUrl,
+  });
 
   final String? initialQuery;
+  final int? preselectedShowId;
+  final String? preselectedShowTitle;
+  final String? preselectedShowPosterUrl;
 
   @override
   ConsumerState<AddShowSheet> createState() => _AddShowSheetState();
@@ -35,7 +44,12 @@ class _AddShowSheetState extends ConsumerState<AddShowSheet> {
   @override
   void initState() {
     super.initState();
-    if (widget.initialQuery != null && widget.initialQuery!.isNotEmpty) {
+    if (widget.preselectedShowId != null) {
+      _selectedShowId = widget.preselectedShowId;
+      _selectedShowTitle = widget.preselectedShowTitle;
+      _selectedShowPosterUrl = widget.preselectedShowPosterUrl;
+    } else if (widget.initialQuery != null &&
+        widget.initialQuery!.isNotEmpty) {
       _searchCtrl.text = widget.initialQuery!;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ref.read(searchProvider.notifier).setQuery(widget.initialQuery!);

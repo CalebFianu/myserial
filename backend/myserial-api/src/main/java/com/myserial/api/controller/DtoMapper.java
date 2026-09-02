@@ -5,6 +5,7 @@ import com.myserial.domain.entity.*;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Utility class for mapping domain entities to response DTOs.
@@ -27,15 +28,25 @@ public final class DtoMapper {
     }
 
     public static EpisodeResponse toEpisodeResponse(Episode episode) {
+        return toEpisodeResponse(episode, false);
+    }
+
+    public static EpisodeResponse toEpisodeResponse(Episode episode, boolean isWatched) {
         return new EpisodeResponse(episode.getId(), episode.getTmdbId(),
                 episode.getSeasonNumber(), episode.getEpisodeNumber(), episode.getName(),
                 episode.getOverview(), episode.getAirDate(), episode.getStillPath(),
-                episode.getRuntime(), episode.getVoteAverage());
+                episode.getRuntime(), episode.getVoteAverage(), isWatched);
     }
 
     public static SeasonResponse toSeasonResponse(Season season, List<Episode> episodes) {
+        return toSeasonResponse(season, episodes, Collections.emptySet());
+    }
+
+    public static SeasonResponse toSeasonResponse(Season season, List<Episode> episodes, Set<Long> watchedEpisodeIds) {
         List<EpisodeResponse> episodeResponses = episodes == null ? Collections.emptyList()
-                : episodes.stream().map(DtoMapper::toEpisodeResponse).toList();
+                : episodes.stream()
+                    .map(ep -> toEpisodeResponse(ep, watchedEpisodeIds.contains(ep.getId())))
+                    .toList();
         return new SeasonResponse(season.getId(), season.getTmdbId(), season.getSeasonNumber(),
                 season.getName(), season.getOverview(), season.getPosterPath(),
                 season.getAirDate(), season.getEpisodeCount(), episodeResponses);
@@ -97,7 +108,7 @@ public final class DtoMapper {
     public static DiaryEntryResponse toDiaryEntryResponse(WatchedEpisode we) {
         Show show = we.getEpisode().getShow();
         return new DiaryEntryResponse(we.getId(), show.getId(), show.getTitle(),
-                show.getPosterPath(), toEpisodeResponse(we.getEpisode()), we.getWatchedAt());
+                show.getPosterPath(), toEpisodeResponse(we.getEpisode(), true), we.getWatchedAt());
     }
 
     public static UpNextResponse toUpNextResponse(com.myserial.domain.service.WatchService.UpNextResult result) {

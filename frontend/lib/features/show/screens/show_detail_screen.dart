@@ -45,6 +45,31 @@ class _ShowDetailContent extends StatelessWidget {
     final topPad = MediaQuery.paddingOf(context).top;
     final screenWidth = MediaQuery.sizeOf(context).width;
 
+    return Stack(
+      children: [
+        _buildScrollView(context, topPad, screenWidth),
+        // Back button — pinned above the scroll view so it never scrolls away.
+        Positioned(
+          top: topPad + 8,
+          left: AppSpacing.sp4,
+          child: MsButton(
+            label: '',
+            variant: MsButtonVariant.glass,
+            size: MsButtonSize.sm,
+            leading: const Icon(
+              Icons.arrow_back_rounded,
+              size: 18,
+              color: Colors.white,
+            ),
+            onPressed: () => context.pop(),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildScrollView(
+      BuildContext context, double topPad, double screenWidth) {
     return CustomScrollView(
       slivers: [
         // Hero header
@@ -98,22 +123,6 @@ class _ShowDetailContent extends StatelessWidget {
                       ],
                     ),
                   ),
-                ),
-              ),
-              // Back button
-              Positioned(
-                top: topPad + 8,
-                left: AppSpacing.sp4,
-                child: MsButton(
-                  label: '',
-                  variant: MsButtonVariant.glass,
-                  size: MsButtonSize.sm,
-                  leading: const Icon(
-                    Icons.arrow_back_rounded,
-                    size: 18,
-                    color: Colors.white,
-                  ),
-                  onPressed: () => context.pop(),
                 ),
               ),
               // Status/episode badges — hero bottom

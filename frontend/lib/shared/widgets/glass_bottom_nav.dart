@@ -19,6 +19,20 @@ class GlassBottomNav extends StatefulWidget {
   final ValueChanged<NavTab> onTabChanged;
   final VoidCallback onAddPressed;
 
+  /// Height of the nav pill itself, excluding its bottom margin.
+  static const double barHeight = 64;
+
+  /// The `bottom:` offset a screen's own floating content (e.g. a save/log
+  /// action bar) should use so it sits just above the pinned nav pill
+  /// instead of being covered by it.
+  static double contentBottomInset(
+    BuildContext context, {
+    double gap = AppSpacing.sp3,
+  }) {
+    final bottomPad = MediaQuery.paddingOf(context).bottom;
+    return bottomPad + AppSpacing.sp4 + barHeight + gap;
+  }
+
   @override
   State<GlassBottomNav> createState() => _GlassBottomNavState();
 }

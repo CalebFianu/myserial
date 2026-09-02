@@ -23,26 +23,41 @@ import '../features/show/screens/person_screen.dart';
 import '../features/show/screens/recap_screen.dart';
 import '../features/show/screens/season_screen.dart';
 import '../features/show/screens/show_detail_screen.dart';
+import '../features/show/providers/show_provider.dart';
 import '../shared/widgets/glass_bottom_nav.dart';
+import '../shared/widgets/ms_sheet.dart';
 
 // ── Shell scaffold ─────────────────────────────────────────────────────────────
 
-class _ShellScaffold extends StatefulWidget {
+class _ShellScaffold extends ConsumerStatefulWidget {
   const _ShellScaffold({required this.child, required this.state});
   final Widget child;
   final GoRouterState state;
 
   @override
-  State<_ShellScaffold> createState() => _ShellScaffoldState();
+  ConsumerState<_ShellScaffold> createState() => _ShellScaffoldState();
 }
 
-class _ShellScaffoldState extends State<_ShellScaffold> {
+class _ShellScaffoldState extends ConsumerState<_ShellScaffold> {
+  // `GoRouterState.matchedLocation` inside a ShellRoute's own builder only
+  // reflects the shell's (pathless) segment, not the actual nested route —
+  // `state.uri.path` is the real current path regardless of nesting depth.
   NavTab get _currentTab {
-    final path = widget.state.matchedLocation;
+    final path = widget.state.uri.path;
     if (path.startsWith('/search')) return NavTab.search;
     if (path.startsWith('/activity')) return NavTab.activity;
     if (path.startsWith('/profile')) return NavTab.profile;
     return NavTab.home;
+  }
+
+  // The show currently on screen, if the active route is a show detail
+  // page (or one of its sub-routes) — used to preselect the add-show flow.
+  int? get _currentShowId {
+    final idStr = widget.state.pathParameters['id'];
+    if (!widget.state.uri.path.startsWith('/show/') || idStr == null) {
+      return null;
+    }
+    return int.tryParse(idStr);
   }
 
   @override
@@ -66,12 +81,19 @@ class _ShellScaffoldState extends State<_ShellScaffold> {
               }
             },
             onAddPressed: () {
-              showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                backgroundColor: Colors.transparent,
-                barrierColor: Colors.black.withOpacity(0.6),
-                builder: (_) => const AddShowSheet(),
+              final showId = _currentShowId;
+              final show = showId != null
+                  ? ref.read(showDetailProvider(showId)).valueOrNull
+                  : null;
+
+              MsSheet.show(
+                context,
+                title: 'Add show',
+                child: AddShowSheet(
+                  preselectedShowId: showId,
+                  preselectedShowTitle: show?.title,
+                  preselectedShowPosterUrl: show?.posterUrl,
+                ),
               );
             },
           ),
@@ -172,83 +194,84 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               child: const ProfileScreen(),
             ),
           ),
+
+          // Full-screen routes — still wrapped by the shell so the bottom
+          // nav (and add-show flow) stay available everywhere.
+          GoRoute(
+            path: '/show/:id',
+            builder: (context, state) => ShowDetailScreen(
+              showId: int.parse(state.pathParameters['id']!),
+            ),
+            routes: [
+              GoRoute(
+                path: 'season/:seasonNumber',
+                builder: (context, state) => SeasonScreen(
+                  showId: int.parse(state.pathParameters['id']!),
+                  seasonNumber:
+                      int.parse(state.pathParameters['seasonNumber']!),
+                ),
+              ),
+              GoRoute(
+                path: 'cast',
+                builder: (context, state) => CastCrewScreen(
+                  showId: int.parse(state.pathParameters['id']!),
+                ),
+              ),
+              GoRoute(
+                path: 'recap',
+                builder: (context, state) => RecapScreen(
+                  showId: int.parse(state.pathParameters['id']!),
+                ),
+              ),
+              GoRoute(
+                path: 'cast-graph',
+                builder: (context, state) => CastGraphScreen(
+                  showId: int.parse(state.pathParameters['id']!),
+                ),
+              ),
+            ],
+          ),
+
+          GoRoute(
+            path: '/person/:id',
+            builder: (context, state) => PersonScreen(
+              personId: int.parse(state.pathParameters['id']!),
+            ),
+          ),
+
+          GoRoute(
+            path: '/lists',
+            builder: (context, state) => const ListsScreen(),
+            routes: [
+              GoRoute(
+                path: ':listId',
+                builder: (context, state) => ListDetailScreen(
+                  listId: state.pathParameters['listId']!,
+                ),
+              ),
+            ],
+          ),
+
+          GoRoute(
+            path: '/alerts',
+            builder: (context, state) => const AlertsScreen(),
+          ),
+
+          GoRoute(
+            path: '/profile/diary',
+            builder: (context, state) => const DiaryScreen(),
+          ),
+
+          GoRoute(
+            path: '/profile/stats',
+            builder: (context, state) => const StatsScreen(),
+          ),
+
+          GoRoute(
+            path: '/profile/up-next',
+            builder: (context, state) => const UpNextScreen(),
+          ),
         ],
-      ),
-
-      // Full-screen routes (outside shell)
-      GoRoute(
-        path: '/show/:id',
-        builder: (context, state) => ShowDetailScreen(
-          showId: int.parse(state.pathParameters['id']!),
-        ),
-        routes: [
-          GoRoute(
-            path: 'season/:seasonNumber',
-            builder: (context, state) => SeasonScreen(
-              showId: int.parse(state.pathParameters['id']!),
-              seasonNumber:
-                  int.parse(state.pathParameters['seasonNumber']!),
-            ),
-          ),
-          GoRoute(
-            path: 'cast',
-            builder: (context, state) => CastCrewScreen(
-              showId: int.parse(state.pathParameters['id']!),
-            ),
-          ),
-          GoRoute(
-            path: 'recap',
-            builder: (context, state) => RecapScreen(
-              showId: int.parse(state.pathParameters['id']!),
-            ),
-          ),
-          GoRoute(
-            path: 'cast-graph',
-            builder: (context, state) => CastGraphScreen(
-              showId: int.parse(state.pathParameters['id']!),
-            ),
-          ),
-        ],
-      ),
-
-      GoRoute(
-        path: '/person/:id',
-        builder: (context, state) => PersonScreen(
-          personId: int.parse(state.pathParameters['id']!),
-        ),
-      ),
-
-      GoRoute(
-        path: '/lists',
-        builder: (context, state) => const ListsScreen(),
-        routes: [
-          GoRoute(
-            path: ':listId',
-            builder: (context, state) => ListDetailScreen(
-              listId: state.pathParameters['listId']!,
-            ),
-          ),
-        ],
-      ),
-
-      GoRoute(
-        path: '/alerts',
-        builder: (context, state) => const AlertsScreen(),
-      ),
-
-      GoRoute(
-        path: '/profile/diary',
-        builder: (context, state) => const DiaryScreen(),
-      ),
-
-      GoRoute(
-        path: '/profile/stats',
-        builder: (context, state) => const StatsScreen(),
-      ),
-
-      GoRoute(
-        path: '/profile/up-next',
-        builder: (context, state) => const UpNextScreen(),
       ),
     ],
     errorBuilder: (context, state) => Scaffold(

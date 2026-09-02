@@ -5,6 +5,7 @@ import '../../../design/colors.dart';
 import '../../../design/spacing.dart';
 import '../../../design/typography.dart';
 import '../../../shared/widgets/ms_avatar.dart';
+import '../../../shared/widgets/pinned_header.dart';
 import '../../../shared/widgets/poster_placeholder.dart';
 import '../providers/show_provider.dart';
 
@@ -28,7 +29,9 @@ class PersonScreen extends ConsumerWidget {
         ),
         data: (person) => CustomScrollView(
           slivers: [
-            SliverToBoxAdapter(
+            pinnedHeader(
+              height: topPad + 42,
+              background: AppColors.ink0,
               child: Padding(
                 padding: EdgeInsets.fromLTRB(
                   AppSpacing.pageGutter,
@@ -36,24 +39,34 @@ class PersonScreen extends ConsumerWidget {
                   AppSpacing.pageGutter,
                   0,
                 ),
+                child: GestureDetector(
+                  onTap: () => context.pop(),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.arrow_back_rounded,
+                          size: 18, color: AppColors.fg3),
+                      const SizedBox(width: 4),
+                      Text('Back',
+                          style: AppTypography.caption
+                              .copyWith(color: AppColors.fg3)),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.pageGutter,
+                  AppSpacing.sp4,
+                  AppSpacing.pageGutter,
+                  0,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    GestureDetector(
-                      onTap: () => context.pop(),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.arrow_back_rounded,
-                              size: 18, color: AppColors.fg3),
-                          const SizedBox(width: 4),
-                          Text('Back',
-                              style: AppTypography.caption
-                                  .copyWith(color: AppColors.fg3)),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.sp5),
                     Row(
                       children: [
                         MsAvatar(

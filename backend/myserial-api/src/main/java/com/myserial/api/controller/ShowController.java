@@ -90,7 +90,13 @@ public class ShowController extends BaseController {
         Season season = showService.getSeasonWithEpisodes(id, seasonNumber)
                 .orElseThrow(() -> new com.myserial.api.exception.NotFoundException("Season not found: S" + seasonNumber));
         List<Episode> eps = showService.getSeasonEpisodes(id, seasonNumber);
-        return ResponseEntity.ok(DtoMapper.toSeasonResponse(season, eps));
+
+        Long userId = optionalCurrentUserId();
+        java.util.Set<Long> watchedEpisodeIds = userId != null
+                ? watchedEpisodeRepository.findEpisodeIdsByUserIdAndShowId(userId, id)
+                : java.util.Collections.emptySet();
+
+        return ResponseEntity.ok(DtoMapper.toSeasonResponse(season, eps, watchedEpisodeIds));
     }
 
     @GetMapping("/{id}/cast")

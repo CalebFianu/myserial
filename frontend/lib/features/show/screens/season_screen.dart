@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/api/api_client.dart';
 import '../../../design/colors.dart';
 import '../../../design/spacing.dart';
 import '../../../design/typography.dart';
 import '../../../shared/widgets/episode_row.dart';
+import '../../../shared/widgets/glass_bottom_nav.dart';
+import '../../../shared/widgets/ms_button.dart';
 import '../../../shared/widgets/ms_sheet.dart';
+import '../../../shared/widgets/pinned_header.dart';
 import '../../../shared/widgets/rating_histogram.dart';
 import '../../../shared/widgets/rating_stars.dart';
 import '../providers/show_provider.dart';
@@ -26,6 +30,7 @@ class SeasonScreen extends ConsumerStatefulWidget {
 class _SeasonScreenState extends ConsumerState<SeasonScreen> {
   final Map<int, bool> _watchedState = {};
   final Map<int, double> _ratingState = {};
+  bool _saving = false;
 
   @override
   Widget build(BuildContext context) {
@@ -36,6 +41,14 @@ class _SeasonScreenState extends ConsumerState<SeasonScreen> {
     );
 
     final show = showAsync.valueOrNull;
+
+    // Episodes whose watched state has changed locally but isn't saved yet.
+    final dirtyWatchedState = <int, bool>{
+      for (final ep in episodesAsync.valueOrNull ?? const <EpisodeDetail>[])
+        if (_watchedState.containsKey(ep.id) &&
+            _watchedState[ep.id] != ep.watched)
+          ep.id: _watchedState[ep.id]!,
+    };
     final season = show?.seasons.firstWhere(
       (s) => s.seasonNumber == widget.seasonNumber,
       orElse: () => SeasonSummary(
@@ -63,60 +76,61 @@ class _SeasonScreenState extends ConsumerState<SeasonScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.ink0,
-      body: episodesAsync.when(
-        loading: () => const Center(
-          child: CircularProgressIndicator(color: AppColors.signal),
-        ),
-        error: (e, _) => Center(
-          child: Text('Error loading episodes', style: AppTypography.body),
-        ),
-        data: (episodes) {
-          // Merge state
-          final mergedEpisodes = episodes.map((ep) {
-            final watched = _watchedState[ep.id] ?? ep.watched;
-            final rating = _ratingState[ep.id] ?? ep.rating;
-            return EpisodeDetail(
-              id: ep.id,
-              episodeNumber: ep.episodeNumber,
-              seasonNumber: ep.seasonNumber,
-              name: ep.name,
-              overview: ep.overview,
-              airDate: ep.airDate,
-              runtime: ep.runtime,
-              stillUrl: ep.stillUrl,
-              watched: watched,
-              rating: rating,
-            );
-          }).toList();
+      body: Stack(
+        children: [
+          episodesAsync.when(
+            loading: () => const Center(
+              child: CircularProgressIndicator(color: AppColors.signal),
+            ),
+            error: (e, _) => Center(
+              child:
+                  Text('Error loading episodes', style: AppTypography.body),
+            ),
+            data: (episodes) {
+              // Merge state
+              final mergedEpisodes = episodes.map((ep) {
+                final watched = _watchedState[ep.id] ?? ep.watched;
+                final rating = _ratingState[ep.id] ?? ep.rating;
+                return EpisodeDetail(
+                  id: ep.id,
+                  episodeNumber: ep.episodeNumber,
+                  seasonNumber: ep.seasonNumber,
+                  name: ep.name,
+                  overview: ep.overview,
+                  airDate: ep.airDate,
+                  runtime: ep.runtime,
+                  stillUrl: ep.stillUrl,
+                  watched: watched,
+                  rating: rating,
+                );
+              }).toList();
 
-          final watchedCount =
-              mergedEpisodes.where((e) => e.watched).length;
-          final ratedEps =
-              mergedEpisodes.where((e) => e.rating != null).toList();
-          final avgRating = ratedEps.isEmpty
-              ? null
-              : ratedEps.fold(0.0, (a, e) => a + e.rating!) /
-                  ratedEps.length;
-          final histogram = buildHistogram(mergedEpisodes);
+              final watchedCount =
+                  mergedEpisodes.where((e) => e.watched).length;
+              final ratedEps =
+                  mergedEpisodes.where((e) => e.rating != null).toList();
+              final avgRating = ratedEps.isEmpty
+                  ? null
+                  : ratedEps.fold(0.0, (a, e) => a + e.rating!) /
+                      ratedEps.length;
+              final histogram = buildHistogram(mergedEpisodes);
 
-          final topPad = MediaQuery.paddingOf(context).top;
+              final topPad = MediaQuery.paddingOf(context).top;
 
-          return CustomScrollView(
-            slivers: [
-              // Header
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.fromLTRB(
-                    AppSpacing.pageGutter,
-                    topPad + AppSpacing.sp4,
-                    AppSpacing.pageGutter,
-                    0,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Back
-                      GestureDetector(
+              return CustomScrollView(
+                slivers: [
+                  // Back button — pinned so it stays put while the rest scrolls.
+                  pinnedHeader(
+                    height: topPad + 42,
+                    background: AppColors.ink0,
+                    child: Padding(
+                      padding: EdgeInsets.fromLTRB(
+                        AppSpacing.pageGutter,
+                        topPad + AppSpacing.sp4,
+                        AppSpacing.pageGutter,
+                        0,
+                      ),
+                      child: GestureDetector(
                         onTap: () => context.pop(),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -136,116 +150,205 @@ class _SeasonScreenState extends ConsumerState<SeasonScreen> {
                           ],
                         ),
                       ),
-                      const SizedBox(height: AppSpacing.sp3),
-                      Text(
-                        season?.name ?? 'Season ${widget.seasonNumber}',
-                        style: AppTypography.title,
+                    ),
+                  ),
+
+                  // Header
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.pageGutter,
+                        AppSpacing.sp3,
+                        AppSpacing.pageGutter,
+                        0,
                       ),
-                      if (avgRating != null) ...[
-                        const SizedBox(height: AppSpacing.sp2),
-                        Row(
-                          children: [
-                            RatingStars(value: avgRating, size: 16),
-                            const SizedBox(width: 6),
-                            Text(
-                              avgRating.toStringAsFixed(1),
-                              style: AppTypography.caption.copyWith(
-                                color: AppColors.star,
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              'avg from your ratings',
-                              style: AppTypography.micro,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            season?.name ?? 'Season ${widget.seasonNumber}',
+                            style: AppTypography.title,
+                          ),
+                          if (avgRating != null) ...[
+                            const SizedBox(height: AppSpacing.sp2),
+                            Row(
+                              children: [
+                                RatingStars(value: avgRating, size: 16),
+                                const SizedBox(width: 6),
+                                Text(
+                                  avgRating.toStringAsFixed(1),
+                                  style: AppTypography.caption.copyWith(
+                                    color: AppColors.star,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'avg from your ratings',
+                                  style: AppTypography.micro,
+                                ),
+                              ],
                             ),
                           ],
+                          const SizedBox(height: AppSpacing.sp3),
+                          Text(
+                            '$watchedCount/${episodes.length} episodes watched',
+                            style: AppTypography.caption.copyWith(
+                              color: AppColors.track,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  // Histogram
+                  if (ratedEps.isNotEmpty)
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(
+                          AppSpacing.pageGutter,
+                          AppSpacing.sp5,
+                          AppSpacing.pageGutter,
+                          0,
                         ),
-                      ],
-                      const SizedBox(height: AppSpacing.sp3),
-                      Text(
-                        '$watchedCount/${episodes.length} episodes watched',
-                        style: AppTypography.caption.copyWith(
-                          color: AppColors.track,
+                        child: RatingHistogram(
+                          bins: histogram,
+                          average: avgRating,
                         ),
                       ),
-                    ],
-                  ),
-                ),
-              ),
-
-              // Histogram
-              if (ratedEps.isNotEmpty)
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                      AppSpacing.pageGutter,
-                      AppSpacing.sp5,
-                      AppSpacing.pageGutter,
-                      0,
                     ),
-                    child: RatingHistogram(
-                      bins: histogram,
-                      average: avgRating,
+
+                  const SliverToBoxAdapter(
+                      child: SizedBox(height: AppSpacing.sp4)),
+
+                  // Divider
+                  SliverToBoxAdapter(
+                    child: Container(
+                      height: 1,
+                      color: AppColors.inkLine,
                     ),
                   ),
-                ),
 
-              const SliverToBoxAdapter(
-                  child: SizedBox(height: AppSpacing.sp4)),
-
-              // Divider
-              SliverToBoxAdapter(
-                child: Container(
-                  height: 1,
-                  color: AppColors.inkLine,
-                ),
-              ),
-
-              // Episodes
-              SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, i) {
-                    final ep = mergedEpisodes[i];
-                    return Column(
-                      children: [
-                        EpisodeRow(
-                          seasonNumber: ep.seasonNumber,
-                          episodeNumber: ep.episodeNumber,
-                          title: ep.name,
-                          watched: ep.watched,
-                          rating: ep.rating,
-                          airDate: ep.airDate,
-                          runtime: ep.runtime,
-                          onWatchedChanged: (v) {
-                            setState(() => _watchedState[ep.id] = v);
-                          },
-                          onRatingChanged: (_) {
-                            _showRatingSheet(context, ep);
-                          },
-                        ),
-                        if (i < mergedEpisodes.length - 1)
-                          Container(
-                            height: 1,
-                            margin: const EdgeInsets.symmetric(
-                              horizontal: AppSpacing.pageGutter,
+                  // Episodes
+                  SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, i) {
+                        final ep = mergedEpisodes[i];
+                        return Column(
+                          children: [
+                            EpisodeRow(
+                              seasonNumber: ep.seasonNumber,
+                              episodeNumber: ep.episodeNumber,
+                              title: ep.name,
+                              watched: ep.watched,
+                              rating: ep.rating,
+                              airDate: ep.airDate,
+                              runtime: ep.runtime,
+                              onWatchedChanged: (v) {
+                                setState(() => _watchedState[ep.id] = v);
+                              },
+                              onRatingChanged: (_) {
+                                _showRatingSheet(context, ep);
+                              },
                             ),
-                            color: AppColors.inkLine.withOpacity(0.5),
-                          ),
-                      ],
-                    );
-                  },
-                  childCount: mergedEpisodes.length,
+                            if (i < mergedEpisodes.length - 1)
+                              Container(
+                                height: 1,
+                                margin: const EdgeInsets.symmetric(
+                                  horizontal: AppSpacing.pageGutter,
+                                ),
+                                color: AppColors.inkLine.withOpacity(0.5),
+                              ),
+                          ],
+                        );
+                      },
+                      childCount: mergedEpisodes.length,
+                    ),
+                  ),
+
+                  const SliverToBoxAdapter(
+                    child: SizedBox(height: AppSpacing.bottomContentPad),
+                  ),
+                ],
+              );
+            },
+          ),
+
+          // Floating above the pinned bottom nav instead of a
+          // Scaffold.bottomNavigationBar, which it would otherwise sit
+          // behind now that this screen lives inside the app shell.
+          if (dirtyWatchedState.isNotEmpty)
+            Positioned(
+              left: AppSpacing.pageGutter,
+              right: AppSpacing.pageGutter,
+              bottom: GlassBottomNav.contentBottomInset(context),
+              child: Container(
+                padding: const EdgeInsets.all(AppSpacing.sp3),
+                decoration: BoxDecoration(
+                  color: AppColors.ink1,
+                  borderRadius: AppRadius.cardRR,
+                  border: Border.all(color: AppColors.inkLine),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.3),
+                      blurRadius: 16,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: MsButton(
+                  label: _saving
+                      ? 'Logging...'
+                      : 'Log ${dirtyWatchedState.length} '
+                          'episode${dirtyWatchedState.length == 1 ? '' : 's'}',
+                  loading: _saving,
+                  fullWidth: true,
+                  onPressed:
+                      _saving ? null : () => _logEpisodes(dirtyWatchedState),
                 ),
               ),
-
-              const SliverToBoxAdapter(
-                child: SizedBox(height: AppSpacing.bottomContentPad),
-              ),
-            ],
-          );
-        },
+            ),
+        ],
       ),
     );
+  }
+
+  Future<void> _logEpisodes(Map<int, bool> changes) async {
+    setState(() => _saving = true);
+    final api = ref.read(apiClientProvider);
+
+    try {
+      for (final entry in changes.entries) {
+        if (entry.value) {
+          await api.post('/watch/${entry.key}');
+        } else {
+          await api.delete('/watch/${entry.key}');
+        }
+      }
+
+      ref.invalidate(seasonEpisodesProvider(
+        (showId: widget.showId, seasonNumber: widget.seasonNumber),
+      ));
+      ref.invalidate(showDetailProvider(widget.showId));
+
+      if (mounted) {
+        setState(() {
+          for (final id in changes.keys) {
+            _watchedState.remove(id);
+          }
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Could not save watched episodes. Try again.'),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
   }
 
   void _showRatingSheet(BuildContext context, EpisodeDetail ep) {

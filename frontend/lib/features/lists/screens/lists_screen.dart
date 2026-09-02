@@ -5,6 +5,7 @@ import '../../../design/colors.dart';
 import '../../../design/spacing.dart';
 import '../../../design/typography.dart';
 import '../../../shared/widgets/ms_button.dart';
+import '../../../shared/widgets/pinned_header.dart';
 import '../providers/lists_provider.dart';
 import '../widgets/create_list_sheet.dart';
 
@@ -27,7 +28,9 @@ class ListsScreen extends ConsumerWidget {
             Center(child: Text('Error', style: AppTypography.body)),
         data: (lists) => CustomScrollView(
           slivers: [
-            SliverToBoxAdapter(
+            pinnedHeader(
+              height: topPad + 54,
+              background: isDark ? AppColors.ink0 : AppColors.paper0,
               child: Padding(
                 padding: EdgeInsets.fromLTRB(
                   AppSpacing.pageGutter,

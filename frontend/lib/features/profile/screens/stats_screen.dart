@@ -5,6 +5,7 @@ import '../../../core/api/api_client.dart';
 import '../../../design/colors.dart';
 import '../../../design/spacing.dart';
 import '../../../design/typography.dart';
+import '../../../shared/widgets/pinned_header.dart';
 import '../../../shared/widgets/rating_histogram.dart';
 import '../providers/profile_provider.dart';
 
@@ -117,7 +118,9 @@ class StatsScreen extends ConsumerWidget {
       backgroundColor: isDark ? AppColors.ink0 : AppColors.paper0,
       body: CustomScrollView(
         slivers: [
-          SliverToBoxAdapter(
+          pinnedHeader(
+            height: topPad + 42,
+            background: isDark ? AppColors.ink0 : AppColors.paper0,
             child: Padding(
               padding: EdgeInsets.fromLTRB(
                 AppSpacing.pageGutter,
@@ -125,27 +128,32 @@ class StatsScreen extends ConsumerWidget {
                 AppSpacing.pageGutter,
                 0,
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  GestureDetector(
-                    onTap: () => context.pop(),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.arrow_back_rounded,
-                            size: 18, color: AppColors.fg3),
-                        const SizedBox(width: 4),
-                        Text('Profile',
-                            style: AppTypography.caption
-                                .copyWith(color: AppColors.fg3)),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.sp4),
-                  Text('Your year', style: AppTypography.title),
-                ],
+              child: GestureDetector(
+                onTap: () => context.pop(),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.arrow_back_rounded,
+                        size: 18, color: AppColors.fg3),
+                    const SizedBox(width: 4),
+                    Text('Profile',
+                        style: AppTypography.caption
+                            .copyWith(color: AppColors.fg3)),
+                  ],
+                ),
               ),
+            ),
+          ),
+
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.pageGutter,
+                AppSpacing.sp3,
+                AppSpacing.pageGutter,
+                0,
+              ),
+              child: Text('Your year', style: AppTypography.title),
             ),
           ),
 

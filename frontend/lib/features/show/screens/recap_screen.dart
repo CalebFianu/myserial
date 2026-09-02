@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../design/colors.dart';
 import '../../../design/spacing.dart';
 import '../../../design/typography.dart';
+import '../../../shared/widgets/pinned_header.dart';
 import '../providers/show_provider.dart';
 
 class RecapScreen extends ConsumerStatefulWidget {
@@ -34,7 +35,9 @@ class _RecapScreenState extends ConsumerState<RecapScreen> {
         data: (recapData) {
           return CustomScrollView(
             slivers: [
-              SliverToBoxAdapter(
+              pinnedHeader(
+                height: topPad + 42,
+                background: AppColors.ink0,
                 child: Padding(
                   padding: EdgeInsets.fromLTRB(
                     AppSpacing.pageGutter,
@@ -42,26 +45,36 @@ class _RecapScreenState extends ConsumerState<RecapScreen> {
                     AppSpacing.pageGutter,
                     0,
                   ),
+                  child: GestureDetector(
+                    onTap: () => context.pop(),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.arrow_back_rounded,
+                            size: 18, color: AppColors.fg3),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Back',
+                          style: AppTypography.caption
+                              .copyWith(color: AppColors.fg3),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.pageGutter,
+                    AppSpacing.sp3,
+                    AppSpacing.pageGutter,
+                    0,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      GestureDetector(
-                        onTap: () => context.pop(),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.arrow_back_rounded,
-                                size: 18, color: AppColors.fg3),
-                            const SizedBox(width: 4),
-                            Text(
-                              'Back',
-                              style: AppTypography.caption
-                                  .copyWith(color: AppColors.fg3),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.sp4),
                       Text('The story so far', style: AppTypography.title),
                       const SizedBox(height: AppSpacing.sp2),
                       Text(
