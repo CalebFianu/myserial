@@ -11,6 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -43,6 +44,31 @@ public class WatchService {
     public void markUnwatched(Long userId, Long episodeId) {
         watchedEpisodeRepository.findByUserIdAndEpisodeId(userId, episodeId)
                 .ifPresent(watchedEpisodeRepository::delete);
+    }
+
+    /**
+     * Marks an arbitrary set of episodes watched in one call, skipping any that
+     * are already logged or missing. Returns only the episodes newly marked, in
+     * the order they were requested, so callers can summarise what changed.
+     */
+    @Transactional
+    public List<WatchedEpisode> markWatchedBatch(Long userId, List<Long> episodeIds) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        List<WatchedEpisode> created = new ArrayList<>();
+        for (Long episodeId : episodeIds) {
+            if (episodeId == null
+                    || watchedEpisodeRepository.existsByUserIdAndEpisodeId(userId, episodeId)) {
+                continue;
+            }
+            Episode episode = episodeRepository.findById(episodeId).orElse(null);
+            if (episode == null) {
+                continue;
+            }
+            created.add(watchedEpisodeRepository.save(
+                    WatchedEpisode.builder().user(user).episode(episode).build()));
+        }
+        return created;
     }
 
     @Transactional

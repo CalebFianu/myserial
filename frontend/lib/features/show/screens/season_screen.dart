@@ -12,6 +12,7 @@ import '../../../shared/widgets/ms_sheet.dart';
 import '../../../shared/widgets/pinned_header.dart';
 import '../../../shared/widgets/rating_histogram.dart';
 import '../../../shared/widgets/rating_stars.dart';
+import '../../activity/providers/activity_provider.dart';
 import '../providers/show_provider.dart';
 
 class SeasonScreen extends ConsumerStatefulWidget {
@@ -318,18 +319,29 @@ class _SeasonScreenState extends ConsumerState<SeasonScreen> {
     final api = ref.read(apiClientProvider);
 
     try {
+      final toWatch = <int>[];
+      final toUnwatch = <int>[];
       for (final entry in changes.entries) {
-        if (entry.value) {
-          await api.post('/watch/${entry.key}');
-        } else {
-          await api.delete('/watch/${entry.key}');
-        }
+        (entry.value ? toWatch : toUnwatch).add(entry.key);
+      }
+
+      if (toWatch.isNotEmpty) {
+        // One call so the backend can log a single grouped activity entry
+        // ("Logged 3 episodes in season 2 of …") instead of one per episode.
+        await api.post('/watch/batch', data: {
+          'showId': widget.showId,
+          'episodeIds': toWatch,
+        });
+      }
+      for (final id in toUnwatch) {
+        await api.delete('/watch/$id');
       }
 
       ref.invalidate(seasonEpisodesProvider(
         (showId: widget.showId, seasonNumber: widget.seasonNumber),
       ));
       ref.invalidate(showDetailProvider(widget.showId));
+      ref.invalidate(activityProvider);
 
       if (mounted) {
         setState(() {

@@ -1,5 +1,6 @@
 package com.myserial.api.controller;
 
+import com.myserial.api.dto.request.BulkWatchEpisodesRequest;
 import com.myserial.api.dto.request.BulkWatchProgressRequest;
 import com.myserial.api.dto.request.BulkWatchRequest;
 import com.myserial.api.dto.response.DiaryEntryResponse;
@@ -14,7 +15,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/watch")
@@ -37,6 +41,44 @@ public class WatchController extends BaseController {
     public ResponseEntity<Void> markUnwatched(@PathVariable Long episodeId) {
         watchService.markUnwatched(currentUserId(), episodeId);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/batch")
+    public ResponseEntity<Void> markBatchWatched(@Valid @RequestBody BulkWatchEpisodesRequest req) {
+        Long userId = currentUserId();
+        List<WatchedEpisode> created = watchService.markWatchedBatch(userId, req.episodeIds());
+        logBatchWatchActivity(userId, req.showId(), created);
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * Records activity for a batch log, grouped by season: a single episode
+     * becomes an EPISODE_WATCHED event linked to that episode; two or more in the
+     * same season become one EPISODES_WATCHED event carrying the season number
+     * and count in its metadata.
+     */
+    private void logBatchWatchActivity(Long userId, Long showId, List<WatchedEpisode> created) {
+        if (created.isEmpty()) {
+            return;
+        }
+        Map<Integer, List<WatchedEpisode>> bySeason = created.stream()
+                .collect(Collectors.groupingBy(
+                        we -> we.getEpisode().getSeasonNumber(),
+                        LinkedHashMap::new,
+                        Collectors.toList()));
+
+        bySeason.forEach((seasonNumber, episodes) -> {
+            if (episodes.size() == 1) {
+                WatchedEpisode we = episodes.get(0);
+                activityService.log(userId, "EPISODE_WATCHED", showId,
+                        we.getEpisode().getId(), null, null);
+            } else {
+                String metadata = String.format(
+                        "{\"seasonNumber\":%d,\"episodeCount\":%d}",
+                        seasonNumber, episodes.size());
+                activityService.log(userId, "EPISODES_WATCHED", showId, null, null, metadata);
+            }
+        });
     }
 
     @PostMapping("/season")

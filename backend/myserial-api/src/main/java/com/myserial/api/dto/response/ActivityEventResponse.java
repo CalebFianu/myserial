@@ -10,6 +10,8 @@ public record ActivityEventResponse(
         Long showId,
         String showTitle,
         Long episodeId,
+        Integer seasonNumber,
+        Integer episodeNumber,
         Long listId,
         String metadata,
         OffsetDateTime createdAt

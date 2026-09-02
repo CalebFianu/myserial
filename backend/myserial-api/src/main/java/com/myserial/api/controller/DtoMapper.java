@@ -98,11 +98,15 @@ public final class DtoMapper {
     public static ActivityEventResponse toActivityEventResponse(ActivityEvent event) {
         Long showId = event.getShow() != null ? event.getShow().getId() : null;
         String showTitle = event.getShow() != null ? event.getShow().getTitle() : null;
-        Long episodeId = event.getEpisode() != null ? event.getEpisode().getId() : null;
+        Episode episode = event.getEpisode();
+        Long episodeId = episode != null ? episode.getId() : null;
+        Integer seasonNumber = episode != null ? episode.getSeasonNumber() : null;
+        Integer episodeNumber = episode != null ? episode.getEpisodeNumber() : null;
         Long listId = event.getList() != null ? event.getList().getId() : null;
         return new ActivityEventResponse(event.getId(), event.getUser().getId(),
                 event.getUser().getHandle(), event.getEventType(), showId, showTitle,
-                episodeId, listId, event.getMetadata(), event.getCreatedAt());
+                episodeId, seasonNumber, episodeNumber, listId, event.getMetadata(),
+                event.getCreatedAt());
     }
 
     public static DiaryEntryResponse toDiaryEntryResponse(WatchedEpisode we) {
